@@ -18,7 +18,7 @@ def charnum(astring):
 
 def tc(inputfile,inputtourfile):
 
-    f = open(inputfile,'r')  # read in data character by character
+    f = open(inputfile,'r')  # read in search_data character by character
     x = f.read(1)            # and strip away rubbish
     flag = "good"
     d = ""
