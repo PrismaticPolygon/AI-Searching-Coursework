@@ -5,6 +5,24 @@ mutation_probability = 0.01
 selective_pressure = 1.90
 
 
+def create_population(num_cities, population_size):
+    """
+        Creates a new population of individuals, a matrix of size population_size x num_cities.
+        Each row of the matrix corresponds to an individual.
+    :param num_cities:
+    :param population_size:
+    :return:
+    """
+
+    cities = np.empty(shape=(population_size, num_cities))
+
+    for i in range(population_size):
+
+        cities[i, :] = np.random.choice(num_cities, num_cities, replace=False) + 1
+
+    return cities
+
+
 
 
 
@@ -22,10 +40,7 @@ selective_pressure = 1.90
 # Also more extensible for other algos.
 # Cities may as well be row vectors.
 
-city = np.random.choice(5, 5, replace=False) + 1
 
 # Parameters required:
 
 # Matrix / vectorised implementation probably a good shout. I'll move to that later.
-
-print(city)
