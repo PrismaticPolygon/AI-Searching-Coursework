@@ -9,7 +9,7 @@ def load_file(filename):
         data = file.read().replace("\n", '').split(",")
 
         size = int(data[1][7:])
-        cities = np.zeros((size, size))
+        cities = np.zeros((size, size), dtype=int)
         j, i = 0, 1
 
         for distance in data[2:]:
