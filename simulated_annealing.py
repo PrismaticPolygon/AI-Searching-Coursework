@@ -3,86 +3,119 @@ import numpy as np
 import math
 
 
-size, distance_matrix = load_file("AISearchtestcase.txt")
-temp = 1
+size, distance_matrix = load_file("NEWAISearchfile048.txt")
 
 # Hyperparameters
-min_temp = 0.00001
-alpha = 0.88
+min_temp = 0.001
+temp = 1
+alpha = 0.995
 comparison_size = 450
 
-# This is blinding fast, and very nice and simple.
-# Then again, I have a great PC and it's a tiny graph.
-# Time to improve this mofo.
 
-# A solution class with an associated cost?
+class Solution:
 
-# Is that bad practice?
+    def generate_route(self):
+        return np.random.choice(size, size, replace=False)
 
+    def generate_cost(self):
 
-# class Solution:
-#
-#     def __init__(self):
-#
-#         self.route = np.random.choice(size, size, replace=False)
-#
-#         self.cost = distance_matrix[0, self.route[-1]]
-#
-#         for i in range(1, size):
-#
-#             self.cost += distance_matrix[i - 1, i]
+        cost =  distance_matrix[self.route[0], self.route[-1]]
 
+        for i in range(1, size):
+            cost += distance_matrix[self.route[i - 1], self.route[i]]
 
+        return cost
 
+    def __init__(self):
 
-def generate_solution(size):
+        self.route = self.generate_route()
+        self.cost = self.generate_cost()
 
-    return np.random.choice(size, size, replace=False)
+    def __str__(self):
+
+        return str(self.cost) + ": " + " -> ".join(map(str, self.route))
 
 
-def calculate_acceptance_probability(old, new, temperature):
+class GreedySolution(Solution):
 
-    return math.exp((new - old) / temperature)
+    def generate_route(self):
+
+        route = [np.random.choice(size)]
+
+        while len(route) < size:
+
+            min, min_index = math.inf, 0
+
+            for i, next in enumerate(distance_matrix[route[-1]]):
+
+                if i not in route and next < min:
+
+                    min, min_index = next, i
+
+            route.append(min_index)
+
+        return np.array(route)
 
 
-def calculate_cost(solution):
+def acceptance_probability(old, new):
 
-    sum = distance_matrix[0, solution[-1]] # Travel from the end back to the start
+    if new.cost < old.cost:
 
-    for i in range(1, len(solution)):
+        return 1
 
-        sum += distance_matrix[i - 1, i]
+    return math.exp(-abs(old.cost - new.cost) / temp)
 
-    return sum
+    # Greedy initial solution. Good thinking.
+# Does it provide that much of a benefit, though?
+
+# Maybe I should be generating successors differently? I'm just doing it randomly at the moment, in truth.
+# Dynamically change the number of iterations as the algorithm progresses: at higher temperatures, fewer iterations.
+
+# Only reduce temperature when a better solution is found...
+# And what does he mean, 'neighbours'? In what sense are they neighbouring? Am I only changing one aspect?
 
 
-best_ever_solution = solution = generate_solution(size)
-best_ever_cost = cost = calculate_cost(solution)
+def anneal():
 
-while temp > min_temp:
+    global min_temp, temp, alpha, comparison_size
 
-    i = 1
+    best_solution = solution = GreedySolution()
 
-    while i < comparison_size:
+    print("Initial solution: ", solution)
 
-        new_solution = generate_solution(size)
-        new_cost = calculate_cost(new_solution)
-        acceptance_probability = calculate_acceptance_probability(cost, new_cost, temp)
+    print("\nCommencing annealing...")
 
-        if acceptance_probability > np.random.rand():
+    while temp > min_temp:
 
-            solution = new_solution
-            cost = new_cost
+        i = 1
 
-            if new_cost < best_ever_cost:
+        while i < comparison_size:
 
-                best_ever_solution = new_solution
-                best_ever_cost = new_cost
+            new_solution = Solution()
 
-        i += 1
+            if acceptance_probability(solution, new_solution) > np.random.rand():
 
-    temp *= alpha
+                solution = new_solution
 
-print(solution, cost)
+                if new_solution.cost < best_solution.cost:
+
+                    best_solution = new_solution
+
+                    print("New best: " + str(best_solution))
+
+            i += 1
+
+        temp *= alpha
+
+        print(temp)
+
+    return best_solution
+
+
+print(anneal())
+
 
 # http://katrinaeg.com/simulated-annealing.html
+# https://github.com/chncyhn/simulated-annealing-tsp/blob/master/anneal.py
+# http://www.psychicorigami.com/2007/06/28/tackling-the-travelling-salesman-problem-simmulated-annealing/
+# https://arxiv.org/pdf/cs/0001018.pdf (Adaptive Simulated Annealing)

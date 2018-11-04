@@ -9,7 +9,7 @@ def load_file(filename):
         data = file.read().replace("\n", '').split(",")
 
         size = int(data[1][7:])
-        cities = np.zeros((size, size), dtype=int)
+        matrix = np.zeros((size, size), dtype=int)
         j, i = 0, 1
 
         for distance in data[2:]:
@@ -22,7 +22,7 @@ def load_file(filename):
 
             try:
 
-                cities[j, i + j] = cities[i + j, j] = re.sub(r'[^0-9]+', "", distance)
+                matrix[j, i + j] = matrix[i + j, j] = re.sub(r'[^0-9]+', "", distance)
 
             except Exception as e:
 
@@ -30,4 +30,6 @@ def load_file(filename):
 
             i += 1
 
-    return cities
+    return matrix.shape[0], matrix
+
+#TODO: catch bad file names
