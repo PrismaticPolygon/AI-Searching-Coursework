@@ -11,17 +11,23 @@ temp = 1
 alpha = 0.995
 comparison_size = 450
 
+# This feels so much like it should be a GA. We're wasting so much information with each iteration.
+# That'd be cool: rank solutions by how far away from each other they are, then their fitness.
+# It'd be a huge dictionary of data points (distance from centre, cost), where the centre would be 1, 2, 3, 4, 5 ...
+
 
 class Solution:
 
     def generate_route(self):
+
         return np.random.choice(size, size, replace=False)
 
     def generate_cost(self):
 
-        cost =  distance_matrix[self.route[0], self.route[-1]]
+        cost = distance_matrix[self.route[0], self.route[-1]]
 
         for i in range(1, size):
+
             cost += distance_matrix[self.route[i - 1], self.route[i]]
 
         return cost
@@ -65,7 +71,7 @@ def acceptance_probability(old, new):
 
     return math.exp(-abs(old.cost - new.cost) / temp)
 
-    # Greedy initial solution. Good thinking.
+# Greedy initial solution. Good thinking.
 # Does it provide that much of a benefit, though?
 
 # Maybe I should be generating successors differently? I'm just doing it randomly at the moment, in truth.

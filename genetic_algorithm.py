@@ -23,6 +23,39 @@ def create_population(num_cities, population_size):
 
     return cities
 
+# Later I can OO them so they have a route and a cost.
+
+def crossover(mother, father):
+
+    assert(len(mother) == len(father))
+    length = len(mother)
+
+    points = [np.random.randint(0, length, dtype=int) for x in range(2)]
+    low, high = min(points), max(points)
+
+    # Let's do one child first, keep things... simple.
+    # Need to think really about which section to use...
+
+    print(mother, father, low, high)
+
+    # Maybe I shouldn pass an array slice.
+
+    daughter = mother[low:high]
+
+    remaining = [city for city in father if city not in daughter]
+
+    print(daughter)
+    print(remaining)
+
+    end = remaining[:length - high]
+    start = remaining[length - high:]
+
+    # And I've done it. Not bad, huh?
+
+    print(start, daughter, end)
+
+    return np.concatenate((start, daughter, end))
+
 
 def mutate(individual):
     """
@@ -42,11 +75,10 @@ def mutate(individual):
     return np.concatenate((chromosome[:insertion_point], mutation, chromosome[insertion_point:]))
 
 
-population = create_population(8, 10)
-new = mutate(population[0])
+population = create_population(8, 2)
+child = crossover(population[0], population[1])
 
-print(population[0], end=" -> ")
-print(new)
+print(child)
 
 
 
