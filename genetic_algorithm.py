@@ -1,5 +1,6 @@
 import numpy as np
 
+#Hyperparameters
 population_size = 200
 mutation_probability = 0.01
 selective_pressure = 1.90
@@ -31,23 +32,21 @@ def mutate(individual):
     :return:
     """
 
-    length = len(individual)
+    points = [np.random.randint(0, len(individual), dtype=int) for x in range(2)]
+    low, high = min(points), max(points)
 
-    a = np.random.randint(0, length, dtype=int)
-    b = np.random.randint(0, length, dtype=int)
-    low = min(a, b)
-    high = max(a, b)
+    mutation = individual[low: high]
+    chromosome = np.concatenate((individual[:low], individual[high:]))
+    insertion_point = np.random.randint(0, len(chromosome), dtype=int)
 
-    subtour = individual[low: high]
-    insertion_point = np.random.randint(0, length - len(subtour), dtype=int)
-
-    new_individual = np.concatenate((individual[:insertion_point], subtour, individual[insertion_point + len(subtour):]))
-
-    return new_individual
+    return np.concatenate((chromosome[:insertion_point], mutation, chromosome[insertion_point:]))
 
 
 population = create_population(8, 10)
-mutate(population[0])
+new = mutate(population[0])
+
+print(population[0], end=" -> ")
+print(new)
 
 
 
