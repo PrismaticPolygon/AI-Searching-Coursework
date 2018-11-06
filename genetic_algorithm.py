@@ -2,11 +2,11 @@ import numpy as np
 from main import load_file
 
 #Hyperparameters
-population_size = 40
+population_size = 300
 mutation_probability = 0.05
 crossover_probability = 0.7
-num_generations = 100
-size, distance_matrix = load_file("NEWAISearchfile012.txt")
+num_generations = 1000
+size, distance_matrix = load_file("NEWAISearchfile017.txt")
 
 class Individual:
 
@@ -62,6 +62,7 @@ class Population:
 
         self.individuals = individuals
         self.current_generation = 0
+        self.best_individual = self.worst_individual = individuals[0]
 
     def crossover(self, parents):
 
@@ -172,7 +173,17 @@ class Population:
 
         self.individuals = children
 
-        self.current_generation += 1
+        potential_best = max(self.individuals, key=lambda i: i.fitness)
+
+        if potential_best.fitness > self.best_individual.fitness:
+
+            self.best_individual = potential_best
+
+        potential_worst = min(self.individuals, key=lambda i: i.fitness)
+
+        if potential_worst.fitness > self.worst_individual.fitness:
+
+            self.worst_individual = potential_worst
 
     def __str__(self):
 
@@ -185,11 +196,8 @@ for i in range(num_generations):
 
     population.evolve()
 
-    best = max(population.individuals, key=lambda i: i.fitness)
-    worst = min(population.individuals, key=lambda i: i.fitness)
-
-    print("Best: " + str(best))
-    print("Worst: " + str(worst))
+    print("Best: " + str(population.best_individual))
+    print("Worst: " + str(population.worst_individual))
 
     # It's improved, but not by much.
 
