@@ -2,12 +2,11 @@ import numpy as np
 from main import load_file
 
 #Hyperparameters
-population_size = 300
-mutation_probability = 0.01
-num_generations = 1000
-size, distance_matrix = load_file("NEWAISearchfile180.txt")
-
-# If Steve really got 12200, that's incredible.
+population_size = 40
+mutation_probability = 0.05
+crossover_probability = 0.7
+num_generations = 100
+size, distance_matrix = load_file("NEWAISearchfile012.txt")
 
 class Individual:
 
@@ -66,10 +65,6 @@ class Population:
 
     def crossover(self, parents):
 
-        assert (len(parents) == 2)
-
-        # print("Parents: ", [str(p) for p in parents])
-
         points = [np.random.randint(0, size, dtype=int) for x in range(2)]
         low, high = min(points), max(points)
 
@@ -89,13 +84,12 @@ class Population:
 
         return children
 
-    def select(self):
+    def roulette_selection(self):
 
         fitness_sum = sum([i.fitness for i in self.individuals])
-        cost_sum = sum([i.cost for i in self.individuals])
         parents = []
 
-        for x in range(population_size):
+        def spin():
 
             temp = 0
             rand = np.random.uniform(0, fitness_sum)
@@ -106,30 +100,75 @@ class Population:
 
                 if temp > rand:
 
-                    parents.append(i)
+                    return i
 
-                    continue
+        for x in range(population_size):
 
-        #print("Mean cost: " + str((cost_sum / len(self.individuals))))
+            parents.append(spin())
 
         return parents
 
+    def rank_selection(self):
+
+        parents = []
+        pool = sorted(self.individuals, key=lambda i: i.fitness)
+        rank_sum = int(((population_size + 1) * population_size) / 2) - population_size
+
+        def rank():
+
+            temp = 0
+            rand = np.random.randint(0, rank_sum)
+
+            for i in range(len(pool) - 1, 0, -1):
+
+                temp += i
+
+                if temp >= rand:
+
+                    return pool[i]
+
+        for x in range(population_size):
+
+            parents.append(rank())
+
+        return parents
+
+    def select(self, selection_type):
+
+        if selection_type is None:
+
+            return self.roulette_selection()
+
+        if selection_type == "roulette":
+
+            return self.roulette_selection()
+
+        elif selection_type == "rank":
+
+            return self.rank_selection()
+
     def evolve(self):
 
-        parents = self.select()
+        # Somehow I have 20 parents and only 6 individuals? What's going on?
+
+        parents = self.select('rank')
         children = []
 
-        for i in range(0, int(population_size / 2)):
+        for i in range(1, population_size, 2):
 
-            children += self.crossover(parents[i * 2: (i + 1) * 2])
+            if np.random.rand() < crossover_probability:
+
+                children += self.crossover(parents[i - 1: i + 1])
+
+            else:
+
+                children += parents[i - 1: i + 1]
 
         for child in children:
 
             if np.random.rand() < mutation_probability:
 
                 child.mutate()
-
-        # How am I going to check whether mutation is actually working?
 
         self.individuals = children
 
@@ -141,7 +180,6 @@ class Population:
 
 
 population = Population()
-
 
 for i in range(num_generations):
 
