@@ -8,6 +8,7 @@ num_generations = 100
 selective_pressure = 1.90
 size, distance_matrix = load_file("AISearchtestcase.txt")
 
+
 class Individual:
 
     def mutate(self):
@@ -19,7 +20,7 @@ class Individual:
         new_chromosome = np.concatenate((self.chromosome[:low], self.chromosome[high:]))
         insertion_point = np.random.randint(0, len(new_chromosome), dtype=int)
 
-        self.chromosome =  np.concatenate((new_chromosome[:insertion_point], mutation, new_chromosome[insertion_point:]))
+        self.chromosome = np.concatenate((new_chromosome[:insertion_point], mutation, new_chromosome[insertion_point:]))
 
     def __init__(self):
 
@@ -28,7 +29,7 @@ class Individual:
 
     def generate_chromosome(self):
 
-        return np.random.choice(size, size, replace=False) + 1
+        return np.random.choice(size, size, replace=False)
 
     def generate_cost(self):
 
@@ -37,6 +38,8 @@ class Individual:
         cost = distance_matrix[self.chromosome[0], self.chromosome[-1]]
 
         for i in range(1, size):
+
+            print(i)
 
             cost += distance_matrix[self.chromosome[i - 1], self.chromosome[i]]
 
