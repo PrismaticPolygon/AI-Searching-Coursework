@@ -46,6 +46,9 @@ I chose to implement OX1, consistently found to be the second-best crossover ope
 
 The probabilities for mutation and crossover are fairly standard in literature: 0.05 and 0.7, respectively.
 
+On my second go implementing my GA, I chose to use tournament selection, to avoid the overhead of sorting
+my population, potentially numbering in the thousands, and forcing the use of a Python list (NumPy does not provide
+the functionality to sort by lambda or key, as I would need to do so by cost / fitness)
 
 
 I found the performance of my simulated annealing algorithm to initially be disappointing. Intuitively, to me,
