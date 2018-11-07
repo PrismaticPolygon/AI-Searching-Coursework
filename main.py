@@ -32,4 +32,31 @@ def load_file(filename):
 
     return matrix.shape[0], matrix
 
+
+def write_file(filename, tour, length):
+
+    try:
+
+        f = open("tour" + filename, "w")
+
+        try:
+
+            f.write("NAME = " + filename[:-4] + ",\n")
+            f.write("TOURSIZE = " + str(tour.size) + ",\n")
+            f.write("LENGTH = " + str(length) + ",\n")
+            f.write(",".join(map(str, tour)))
+
+        finally:
+
+            f.close()
+
+    except IOError:
+
+        print("Error writing file")
+        pass
+
+
+
+
+
 #TODO: catch bad file names
