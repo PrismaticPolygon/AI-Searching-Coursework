@@ -5,14 +5,21 @@ import math
 # Hyperparameters
 min_temp = 0.001
 temp = 1
-alpha = 0.99
-comparison_size = 450
-filename = "AISearchtestcase.txt"
+alpha = 0.995
+neighbourhood_size = 300
+filename = "NEWAISearchfile017.txt"
 size, distance_matrix = load_file(filename)
 
 # This feels so much like it should be a GA. We're wasting so much information with each iteration.
 # That'd be cool: rank solutions by how far away from each other they are, then their fitness.
 # It'd be a huge dictionary of data points (distance from centre, cost), where the centre would be 1, 2, 3, 4, 5 ...
+# This can't be how it is implemented, just can't.
+
+# Aha! We're not CONSERVATIVELY generating neighbours: this truly is purely random search.
+# Neighbours are the set of permutations produced by reversing the order of any two successive cities!
+# That makes a ton more sense.
+
+# Return temperature as a generator?
 
 
 class Solution:
@@ -31,10 +38,30 @@ class Solution:
 
         return cost
 
-    def __init__(self):
+    def __init__(self, route=None):
 
-        self.route = self.generate_route()
+        self.route = route if route is not None else self.generate_route()
         self.cost = self.generate_cost()
+
+    @classmethod
+    def from_route(cls, route):
+
+        return cls(route)
+
+    def generate_neighbours(self):
+
+        i = 0
+
+        while i < neighbourhood_size:
+
+            index = np.random.randint(1, size)
+
+            neighbour_route = np.copy(self.route)
+            neighbour_route[index], neighbour_route[index - 1] = neighbour_route[index - 1], neighbour_route[index]
+
+            yield Solution.from_route(neighbour_route)
+
+            i += 1
 
     def __str__(self):
 
@@ -77,6 +104,17 @@ def acceptance_probability(old, new):
 
     return math.exp(-abs(old.cost - new.cost) / temp)
 
+
+def temperature_schedule():
+
+    global temp, min_temp, alpha
+
+    while temp > min_temp:
+
+        temp *= alpha
+
+        yield temp
+
 # Greedy initial solution. Good thinking.
 # Does it provide that much of a benefit, though?
 
@@ -89,46 +127,33 @@ def acceptance_probability(old, new):
 
 def anneal():
 
-    global min_temp, temp, alpha, comparison_size
-
     best_solution = solution = GreedySolution()
 
-    print("Initial solution: ", solution)
+    print(solution)
 
-    print("\nCommencing annealing...")
+    print("\nCommencing annealing...\n")
 
-    while temp > min_temp:
+    for temp in temperature_schedule():
 
-        i = 1
+        for neighbour in solution.generate_neighbours():
 
-        while i < comparison_size:
+            if acceptance_probability(solution, neighbour) > np.random.rand():
 
-            new_solution = Solution()
+                solution = neighbour
 
-            if acceptance_probability(solution, new_solution) > np.random.rand():
+                if neighbour.cost < best_solution.cost:
 
-                solution = new_solution
-
-                if new_solution.cost < best_solution.cost:
-
-                    best_solution = new_solution
+                    best_solution = neighbour
 
                     print("New best: " + str(best_solution))
-
-            i += 1
-
-        temp *= alpha
-
-        print(temp)
 
     return best_solution
 
 
-sol = GreedySolution()
+result = anneal()
 
+print(result)
 
-# result = anneal()
-#
 # write_file(filename, result.route, result.cost)
 
 
