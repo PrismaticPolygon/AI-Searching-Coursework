@@ -23,7 +23,7 @@ class Solution:
 
     def generate_cost(self):
 
-        cost = distance_matrix[self.route[0], self.route[-1]]
+        cost = distance_matrix[self.route[0] - 1, self.route[-1] - 1]
 
         for i in range(1, size):
 
