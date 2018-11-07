@@ -1,18 +1,20 @@
 import numpy as np
-from main import load_file
+from main import load_file, write_file
 
 #Hyperparameters
 population_size = 300
 mutation_probability = 0.05
 crossover_probability = 0.7
 num_generations = 1000
-size, distance_matrix = load_file("NEWAISearchfile017.txt")
+filename = "AISearchtestcase.txt"
+size, distance_matrix = load_file(filename)
+
 
 class Individual:
 
     def __init__(self, chromosome=None):
 
-        self.chromosome = chromosome if chromosome is not None else np.random.choice(size, size, replace=False)
+        self.chromosome = chromosome if chromosome is not None else np.random.choice(size, size, replace=False) + 1
         self.cost, self.fitness = self.generate_fitness()
 
     @classmethod
@@ -21,6 +23,7 @@ class Individual:
         return cls(chromosome)
 
     def mutate(self):
+
         points = [np.random.randint(0, len(self.chromosome), dtype=int) for x in range(2)]
         low, high = min(points), max(points)
 
@@ -33,15 +36,13 @@ class Individual:
 
     def generate_fitness(self):
 
-        fitness = distance_matrix[self.chromosome[0], self.chromosome[-1]]
+        cost = distance_matrix[self.chromosome[0] - 1, self.chromosome[-1] - 1]
 
         for i in range(1, size):
 
-            fitness += distance_matrix[self.chromosome[i - 1], self.chromosome[i]]
+            cost += distance_matrix[self.chromosome[i - 1] - 1, self.chromosome[i] - 1]
 
-        self.cost = fitness
-
-        return fitness, 1 /  fitness
+        return cost, 1 / cost
 
     def __str__(self):
 
@@ -58,7 +59,7 @@ class Population:
         for i in range(population_size):
 
                 individuals.append(Individual())
-        #     individuals[i, :] = Individual()
+        #       individuals[i, :] = Individual()
 
         self.individuals = individuals
         self.current_generation = 0
@@ -112,7 +113,7 @@ class Population:
     def rank_selection(self):
 
         parents = []
-        pool = sorted(self.individuals, key=lambda i: i.fitness)
+        pool = sorted(self.individuals, key=lambda i: i.cost, reverse=True)
         rank_sum = int(((population_size + 1) * population_size) / 2) - population_size
 
         def rank():
@@ -200,6 +201,8 @@ for i in range(num_generations):
     print("Worst: " + str(population.worst_individual))
 
     # It's improved, but not by much.
+
+write_file(filename, population.best_individual.chromosome, population.best_individual.cost)
 
 
 # Right: fitness does not seem to be improving.
