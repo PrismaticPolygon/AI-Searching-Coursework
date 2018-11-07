@@ -1,0 +1,52 @@
+A detailed description of your implementations, tabulations of the results produced, an explanation of your experiments,
+and critical comments.
+
+Full and clear descriptions of your implementations, focussing on different issues arising.
+
+
+Off-by-one errors were particularly pernicious, arising from the discrepancy between the indexing of the cities (from 1)
+and the matrix containing their distances from each other (from 0). As a result, particular care was required when
+generating routes. The problem was compounded in the GA implementation because of the complicated operations being
+performed.
+
+A simple solution may be been to index the routes from 0, then simply adding 1 prior to writing the tour to storage;
+however, I was more comfortable with tackling the problem at the root, and so did.
+
+I chose to implement my GA in an object-oriented style for clarity of structure.
+
+This may have resulted in a performance hit: had I maintained individuals purely as routes, my entire population could
+have been one NumPy matrix of dimension num_cities x population_size, likely much more memory efficient, and faster,
+than my current implementation. It is an issue I may explore in a subsequent branch, but it would require many methods
+to be entirely rewritten.
+
+Each individual instead consisted of a chromosome, a NumPy array encoding the route
+
+I chose to update an individual's fitness when the chromosome was altered (i.e. on crossover and mutation)
+
+I initially went for roulette wheel selection but found, as the literature had indicated, that selection pressure was
+too high, and premature convergence all but inevitable. I found much better results using rank selection.
+
+I chose the displacement mutation operator as Larranaga et al. found it to be one of the best mutation operators,
+alongside ISM (insertion mutation) and IVM (inversion mutation). All are very similar: ISM removes only one vertex,
+whereas DM removes a subtour; IVM inserts the subtour reversed, and DM as it was removed.
+
+Mutation was fairly simple to implement, requiring only some considered array slicing.
+
+
+
+
+
+I initially planned to implement genetic edge recombination crossover (ER). However, ER is based on the number of edges
+that a city has, and in the provided samples, the graphs are complete, leaving ER little better than random. As a result,
+I chose to implement OX1, consistently found to be the second-best crossover operator.
+
+The probabilities for mutation and crossover are fairly standard in literature: 0.05 and 0.7, respectively.
+
+
+
+I found the performance of my simulated annealing algorithm to initially be disappointing. Intuitively, to me,
+so much data was being wasted with each iteration: rather than improving individuals using the current bests...
+
+To improve performance, I implemented a greedy solution to serve as my first individual, with only a small, one-off
+hit to runtime at the beginning. SA frequently failed to improve on this initial greedy solution, which warranted
+further investigation: I'd read good things about it.
