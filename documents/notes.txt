@@ -32,6 +32,10 @@ whereas DM removes a subtour; IVM inserts the subtour reversed, and DM as it was
 
 Mutation was fairly simple to implement, requiring only some considered array slicing.
 
+Well now, this will take a while!
+
+I implemented a simple series of loops to see what parameters worked best with which solutions. It was clear that it
+would take an awfully long time, so I decided to try to take advantage of my PC's GPU.
 
 
 
@@ -62,3 +66,5 @@ amounts of memory, which using a generator side-steps.
 I came across adaptive simulated annealing, a meta-heuristic of sorts, where the hyperparameters that
 control the annealing are themselves optimised. It seems very involved - unless I find a paper that explains it well,
 I will shy away from attempting to implement such a system.
+
+I need to systematically experiment with my hyperparameters. I'll just iterate through! Of course.
