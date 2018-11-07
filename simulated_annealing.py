@@ -1,15 +1,14 @@
-from main import load_file
+from main import load_file, write_file
 import numpy as np
 import math
-
-
-size, distance_matrix = load_file("NEWAISearchfile048.txt")
 
 # Hyperparameters
 min_temp = 0.001
 temp = 1
-alpha = 0.995
+alpha = 0.99
 comparison_size = 450
+filename = "AISearchtestcase.txt"
+size, distance_matrix = load_file(filename)
 
 # This feels so much like it should be a GA. We're wasting so much information with each iteration.
 # That'd be cool: rank solutions by how far away from each other they are, then their fitness.
@@ -20,7 +19,7 @@ class Solution:
 
     def generate_route(self):
 
-        return np.random.choice(size, size, replace=False)
+        return np.random.choice(size, size, replace=False) + 1
 
     def generate_cost(self):
 
@@ -28,7 +27,7 @@ class Solution:
 
         for i in range(1, size):
 
-            cost += distance_matrix[self.route[i - 1], self.route[i]]
+            cost += distance_matrix[self.route[i - 1] - 1, self.route[i] - 1]
 
         return cost
 
@@ -46,21 +45,28 @@ class GreedySolution(Solution):
 
     def generate_route(self):
 
-        route = [np.random.choice(size)]
+        route = np.zeros(size, dtype=int)
+        route[0] = np.random.choice(size) + 1
 
-        while len(route) < size:
+        for i in range(1, size):
 
-            min, min_index = math.inf, 0
+            min, min_index, cur_index = math.inf, 0, route[i - 1] - 1
 
-            for i, next in enumerate(distance_matrix[route[-1]]):
+            for j in range(size):
 
-                if i not in route and next < min:
+                cost = distance_matrix[cur_index, j]
 
-                    min, min_index = next, i
+                if j == cur_index:  # The case where the index points to itself.
 
-            route.append(min_index)
+                    continue
 
-        return np.array(route)
+                if (j + 1) not in route and cost < min:
+
+                    min, min_index = cost, (j + 1)
+
+            route[i] = min_index
+
+        return route
 
 
 def acceptance_probability(old, new):
@@ -118,7 +124,12 @@ def anneal():
     return best_solution
 
 
-print(anneal())
+sol = GreedySolution()
+
+
+# result = anneal()
+#
+# write_file(filename, result.route, result.cost)
 
 
 # http://katrinaeg.com/simulated-annealing.html
