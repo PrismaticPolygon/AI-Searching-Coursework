@@ -3,23 +3,15 @@ import numpy as np
 import math
 
 # Hyperparameters
-min_temp = 0.001
+min_temp = 0.0001
 temp = 1
 alpha = 0.995
 neighbourhood_size = 300
 filename = "NEWAISearchfile017.txt"
 size, distance_matrix = load_file(filename)
 
-# This feels so much like it should be a GA. We're wasting so much information with each iteration.
-# That'd be cool: rank solutions by how far away from each other they are, then their fitness.
-# It'd be a huge dictionary of data points (distance from centre, cost), where the centre would be 1, 2, 3, 4, 5 ...
-# This can't be how it is implemented, just can't.
-
-# Aha! We're not CONSERVATIVELY generating neighbours: this truly is purely random search.
-# Neighbours are the set of permutations produced by reversing the order of any two successive cities!
-# That makes a ton more sense.
-
 # Return temperature as a generator?
+# Represent parameters as continuous numbers, the dimensions of a hypercube.
 
 
 class Solution:
@@ -115,15 +107,7 @@ def temperature_schedule():
 
         yield temp
 
-# Greedy initial solution. Good thinking.
-# Does it provide that much of a benefit, though?
-
-# Maybe I should be generating successors differently? I'm just doing it randomly at the moment, in truth.
 # Dynamically change the number of iterations as the algorithm progresses: at higher temperatures, fewer iterations.
-
-# Only reduce temperature when a better solution is found...
-# And what does he mean, 'neighbours'? In what sense are they neighbouring? Am I only changing one aspect?
-
 
 def anneal():
 
@@ -156,8 +140,9 @@ print(result)
 
 # write_file(filename, result.route, result.cost)
 
-
 # http://katrinaeg.com/simulated-annealing.html
 # https://github.com/chncyhn/simulated-annealing-tsp/blob/master/anneal.py
 # http://www.psychicorigami.com/2007/06/28/tackling-the-travelling-salesman-problem-simmulated-annealing/
 # https://arxiv.org/pdf/cs/0001018.pdf (Adaptive Simulated Annealing)
+# https://www.ingber.com/ASA-README.html
+# https://www.sciencedirect.com/science/article/pii/S0304414901000825
