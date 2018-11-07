@@ -50,3 +50,15 @@ so much data was being wasted with each iteration: rather than improving individ
 To improve performance, I implemented a greedy solution to serve as my first individual, with only a small, one-off
 hit to runtime at the beginning. SA frequently failed to improve on this initial greedy solution, which warranted
 further investigation: I'd read good things about it.
+
+I quickly realised I'd missed a crucial aspect of simulated annealing: I was generating neighbours entirely randomly,
+leaving my algorithm as little better than random search. I realised instead that neighbours of a state need to be
+generated conservatively: typically in the TSP, by reversing the order of any two successive cities.
+
+I've made an effort to use generators. For example, when generating neighbours for the SA algo, the initial, naive
+implementation would be to return a list. As the size of the neighbourhood grows, however, this consumes increasing
+amounts of memory, which using a generator side-steps.
+
+I came across adaptive simulated annealing, a meta-heuristic of sorts, where the hyperparameters that
+control the annealing are themselves optimised. It seems very involved - unless I find a paper that explains it well,
+I will shy away from attempting to implement such a system.
