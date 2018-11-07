@@ -1,5 +1,13 @@
 import numpy as np
 import re
+import os
+
+
+def get_files():
+
+    for file in os.listdir("search_data"):
+
+        yield load_file(file)
 
 
 def load_file(filename):
