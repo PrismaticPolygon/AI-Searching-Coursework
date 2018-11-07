@@ -2,11 +2,14 @@ import numpy as np
 from main import load_file
 
 chromosome_length, distance_matrix = load_file("AISearchtestcase.txt")
-population_size = 100
+population_size = 1000
 mutation_probability = 0.05
 crossover_probability = 0.7
 tournament_size = 2
 num_generations = 1000
+
+# It's going nowhere, but why?
+# Consistently bad solutions. Nice!
 
 
 class GeneticAlgorithm:
@@ -18,6 +21,22 @@ class GeneticAlgorithm:
         for i in range(population_size):
 
             self.population[i] = np.random.choice(chromosome_length, chromosome_length, replace=False)
+
+    def get_mean_cost(self):
+
+        sum = 0
+
+        for i in range(population_size):
+
+            sum += self.get_cost(i)
+
+        return sum / population_size
+
+    def get_best(self):
+
+        best_index = max([x for x in range(population_size)], key=lambda i: self.get_cost(i))
+
+        return self.population[best_index], self.get_cost(best_index)
 
     def get_cost(self, i):
 
@@ -41,14 +60,12 @@ class GeneticAlgorithm:
                 low, high = min(points), max(points)
                 insert = np.random.randint(0, chromosome_length - high + low)
 
-                subtour = population[i][low: high]
-                new = np.concatenate((population[i][:low], population[i][high:]))
+                subtour = self.population[i][low: high]
+                new = np.concatenate((self.population[i][:low], self.population[i][high:]))
 
-                population[i] = np.concatenate((new[:insert], subtour, new[insert:]))
+                self.population[i] = np.concatenate((new[:insert], subtour, new[insert:]))
 
     def breed(self):
-
-        global population
 
         children = np.empty((population_size, chromosome_length), dtype=int)
 
@@ -78,7 +95,7 @@ class GeneticAlgorithm:
 
             crossover([select(), select()])
 
-        population = children
+        self.population = children
 
     def evolve(self):
 
@@ -87,9 +104,11 @@ class GeneticAlgorithm:
             self.breed()
             self.mutate()
 
-        best_index = max([x for x in range(population_size)], key=lambda i: self.get_cost(i))
+            print("Best: ", end="")
+            print(self.get_best())
+            print("Mean cost: " + str(self.get_mean_cost()))
 
-        return self.population[best_index], self.get_cost(best_index)
+        return self.get_best()
 
 
 ga = GeneticAlgorithm()
