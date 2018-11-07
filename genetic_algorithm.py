@@ -1,20 +1,15 @@
 import numpy as np
-from main import load_file, write_file
-
-#Hyperparameters
-population_size = 300
-mutation_probability = 0.05
-crossover_probability = 0.7
-num_generations = 1000
-filename = "AISearchtestcase.txt"
-size, distance_matrix = load_file(filename)
-
+from main import load_file, get_files
 
 class Individual:
 
     def __init__(self, chromosome=None):
 
-        self.chromosome = chromosome if chromosome is not None else np.random.choice(size, size, replace=False) + 1
+        if chromosome is not None:
+            self.chromosome = chromosome
+        else:
+            self.chromosome = np.random.choice(chromosome_length, chromosome_length, replace=False) + 1
+
         self.cost, self.fitness = self.generate_fitness()
 
     @classmethod
@@ -38,7 +33,7 @@ class Individual:
 
         cost = distance_matrix[self.chromosome[0] - 1, self.chromosome[-1] - 1]
 
-        for i in range(1, size):
+        for i in range(1, chromosome_length):
 
             cost += distance_matrix[self.chromosome[i - 1] - 1, self.chromosome[i] - 1]
 
@@ -51,14 +46,17 @@ class Individual:
 
 class Population:
 
-    def __init__(self):
+    def __init__(self, population_size, mutation_probability, crossover_probability):
+
+        self.population_size = population_size
+        self.mutation_probability = mutation_probability
+        self.crossover_probability = crossover_probability
 
         individuals = []
         # individuals = np.empty(shape=(population_size, size))
 
         for i in range(population_size):
-
-                individuals.append(Individual())
+            individuals.append(Individual())
         #       individuals[i, :] = Individual()
 
         self.individuals = individuals
@@ -67,10 +65,10 @@ class Population:
 
     def crossover(self, parents):
 
-        points = [np.random.randint(0, size, dtype=int) for x in range(2)]
+        points = [np.random.randint(0, chromosome_length, dtype=int) for x in range(2)]
         low, high = min(points), max(points)
 
-        #children = np.empty((2, size), dtype=int)
+        # children = np.empty((2, size), dtype=int)
         children = []
 
         for i, parent in enumerate(parents):
@@ -78,10 +76,10 @@ class Population:
             middle = parent.chromosome[low:high]
             remaining = np.setdiff1d(other_parent.chromosome, middle, assume_unique=True)
 
-            end = remaining[:size - high]
-            start = remaining[size - high:]
+            end = remaining[:chromosome_length - high]
+            start = remaining[chromosome_length - high:]
 
-            #children[i] = Individual.from_chromosome(np.concatenate((start, middle, end)))
+            # children[i] = Individual.from_chromosome(np.concatenate((start, middle, end)))
             children.append(Individual.from_chromosome(np.concatenate((start, middle, end))))
 
         return children
@@ -101,11 +99,9 @@ class Population:
                 temp += i.fitness
 
                 if temp > rand:
-
                     return i
 
-        for x in range(population_size):
-
+        for x in range(self.population_size):
             parents.append(spin())
 
         return parents
@@ -114,7 +110,7 @@ class Population:
 
         parents = []
         pool = sorted(self.individuals, key=lambda i: i.cost, reverse=True)
-        rank_sum = int(((population_size + 1) * population_size) / 2) - population_size
+        rank_sum = int(((self.population_size + 1) * self.population_size) / 2) - self.population_size
 
         def rank():
 
@@ -126,11 +122,9 @@ class Population:
                 temp += i
 
                 if temp >= rand:
-
                     return pool[i]
 
-        for x in range(population_size):
-
+        for x in range(self.population_size):
             parents.append(rank())
 
         return parents
@@ -138,7 +132,6 @@ class Population:
     def select(self, selection_type):
 
         if selection_type is None:
-
             return self.roulette_selection()
 
         if selection_type == "roulette":
@@ -156,9 +149,9 @@ class Population:
         parents = self.select('rank')
         children = []
 
-        for i in range(1, population_size, 2):
+        for i in range(1, self.population_size, 2):
 
-            if np.random.rand() < crossover_probability:
+            if np.random.rand() < self.crossover_probability:
 
                 children += self.crossover(parents[i - 1: i + 1])
 
@@ -168,7 +161,7 @@ class Population:
 
         for child in children:
 
-            if np.random.rand() < mutation_probability:
+            if np.random.rand() < self.mutation_probability:
 
                 child.mutate()
 
@@ -177,13 +170,13 @@ class Population:
         potential_best = max(self.individuals, key=lambda i: i.fitness)
 
         if potential_best.fitness > self.best_individual.fitness:
-
             self.best_individual = potential_best
+
+            #print("New best: " + str(self.best_individual))
 
         potential_worst = min(self.individuals, key=lambda i: i.fitness)
 
         if potential_worst.fitness > self.worst_individual.fitness:
-
             self.worst_individual = potential_worst
 
     def __str__(self):
@@ -191,39 +184,56 @@ class Population:
         return "\n".join(map(str, self.individuals))
 
 
-population = Population()
+class GeneticAlgorithm:
 
-for i in range(num_generations):
+    def __init__(self, population_size=-1, mutation_probability=-1.0, crossover_probability=-1.0, num_generations=-1):
 
-    population.evolve()
+        self.population_size = 100 if population_size == -1 else population_size
+        self.mutation_probability = 0.05 if mutation_probability == -1 else mutation_probability
+        self.crossover_probability = 0.7 if crossover_probability == -1 else crossover_probability
+        self.num_generations = 1000 if num_generations == -1 else num_generations
 
-    print("Best: " + str(population.best_individual))
-    print("Worst: " + str(population.worst_individual))
+        self.population = Population(self.population_size, self.mutation_probability, self.crossover_probability)
 
-    # It's improved, but not by much.
+    def run(self):
 
-write_file(filename, population.best_individual.chromosome, population.best_individual.cost)
+        for i in range(self.num_generations):
 
+            self.population.evolve()
 
-# Right: fitness does not seem to be improving.
-
-
-
-#Read through document; we'll find the best crossover and mutation operators.
-
-# Path representation
-# ER crossover.
-# DM, IVM, ISM (efficacy). SIM, SM (speed)
-# size of population = 200; probability of mutation (0.01), selective pressure (1.90)
-
-# Representation?
-# Define an object?
-# Making classes! Wrong choice.
-# Doesn't really need because the the matrix; we can just query the look-up table.
-# Also more extensible for other algos.
-# Cities may as well be row vectors.
+        return self.population.best_individual
 
 
-# Parameters required:
+for chromosome_length, distance_matrix in get_files():
 
-# Matrix / vectorised implementation probably a good shout. I'll move to that later.
+    data = []
+
+    for population_size in range(10, 1000, 10):
+
+        print((population_size / 1000) * 100)
+
+        for i in range(0, 1):
+
+            mutation_probability = i * 0.01
+
+            for j in range(0, 1):
+
+                crossover_probability = j * 0.01
+
+                for num_generations in range(100, 10000, 100):
+                    ga = GeneticAlgorithm(population_size, mutation_probability, crossover_probability, num_generations)
+
+                    best = ga.run()
+
+                    data.append(
+                        (population_size, mutation_probability, crossover_probability, num_generations, best.cost))
+
+    with open('genetic_algorithm_data' + str(chromosome_length) + '.txt', 'w') as f:
+
+        for item in data:
+
+            f.write("%s\n" % ", ".join(map(str, item)))
+
+
+
+# write_file(filename, population.best_individual.chromosome, population.best_individual.cost)
