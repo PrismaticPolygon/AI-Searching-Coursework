@@ -41,27 +41,39 @@ def load_file(filename):
     return matrix.shape[0], matrix
 
 
-def write_file(filename, tour, length):
+def write_file(filename, algorithm, tour, length):
+
+    def write():
+
+        print("Writing to file: ", algorithm, tour, length)
+
+        with open("tour_data/Tourfile" + algorithm + "/tour" + filename, "w") as f:
+
+            try:
+
+                f.write("NAME = " + filename[:-4] + ",\n")
+                f.write("TOURSIZE = " + str(tour.size) + ",\n")
+                f.write("LENGTH = " + str(length) + ",\n")
+                f.write(",".join(map(str, tour)))
+
+            finally:
+
+                f.close()
 
     try:
 
-        f = open("tour" + filename, "w")
+        with open("tour_data/Tourfile" + algorithm + "/tour" + filename, "r") as f:
 
-        try:
+            old_length = int(f.readlines()[2][9:-2])
 
-            f.write("NAME = " + filename[:-4] + ",\n")
-            f.write("TOURSIZE = " + str(tour.size) + ",\n")
-            f.write("LENGTH = " + str(length) + ",\n")
-            f.write(",".join(map(str, tour)))
+            if old_length > length:
 
-        finally:
-
-            f.close()
+                write()
 
     except IOError:
 
-        print("Error writing file")
-        pass
+        write()
+
 
 
 
