@@ -2,44 +2,17 @@ import numpy as np
 from main import write_file, get_files
 
 # Hyperparameters
-population_size = 100
+population_size = 1000
 mutation_probability = 0.05
 crossover_probability = 0.7
 tournament_size = 4
 num_generations = 250
 
-# np.random.seed(1)
-
-# I wonder where the time goes.
-# Dynamically modify selection pressure.
-
-# Now, how am I going to experiment with my hyperparameters?
-# Even worse, the mean cost actually increased. Outrageous.
-# Let's modify to store the best solution, shall we?
-# Or we could store the max, min, and mean fitnesses.
-# I can't believe that it's increasing...
-
-# The dynamic application of crossover and mutation operators
-# The population partial re-initialisation
-
-# The greater the tournament size, the greater the selection pressure: weak individuals have a smaller chance to be
-# selected, and strong individuals are likely to be selected multiples.
-
-# efficient to code, works on parallel architectures, allows for selection pressure to be easily adjusted,
-# independent of the scaling of the GA fitness function
-# That said, it still hasn't fully converged.
-
-# Best is still only around 1974
-# To regain genetic variation: incest prevention, uniform crossover, favoured replacement of similar individuals
+# Dynamically modify selection pressure and operators used
+# Re-initialise population after convergence
+# To regain genetic variation: incest prevention, uniform crossover, favoured replacement of similar individuals,
 # segmentation of individuals of similar fitness, increasing population size.
-# A single 'selection pressure' variable to vary would be cool.
 
-# Convergence check.
-# Store data from each generation, also write somewhere?
-# If the same individual has been best for more than 10% of the time...
-
-# A kernel function is a GPU function mean to be called from CPU code. Cannot explicitly return
-#  a value. All result data must be written to an array passed to the function.
 
 class GeneticAlgorithm:
 
@@ -50,6 +23,10 @@ class GeneticAlgorithm:
         for i in range(population_size):
 
             self.population[i] = np.random.choice(length, length, replace=False)
+
+        self.best_route, self.best_cost = self.get_best()
+
+        print("Initial cost: ", self.best_cost)
 
     def get_mean_cost(self):
 
@@ -64,7 +41,6 @@ class GeneticAlgorithm:
     def get_best(self):
 
         best_index = min([x for x in range(population_size)], key=lambda i: self.get_cost(i))
-        best_cost = self.get_cost(best_index)
 
         return self.population[best_index], self.get_cost(best_index)
 
@@ -79,8 +55,6 @@ class GeneticAlgorithm:
             cost += distance_matrix[individual[i - 1], individual[i]]
 
         return cost
-
-    # Probably means I should move my mutation check, right?
 
     def mutate(self):
 
@@ -127,8 +101,6 @@ class GeneticAlgorithm:
 
             parents = [select(), select()]
 
-            # Herein lies the problem. But why?
-
             if crossover_probability >= np.random.rand():
 
                 crossover([select(), select()])
@@ -148,15 +120,22 @@ class GeneticAlgorithm:
 
             best, cost = self.get_best()
 
-            print(str(i) + ": " + str(self.get_mean_cost()) + ", " + str(cost))
+            if cost < self.best_cost:
 
-        return self.get_best()
+                self.best_route = best
+                self.best_cost = cost
+
+                print("New best: ", self.best_cost)
+
+        return self.best_route, self.best_cost
 
 
 for filename, (length, distance_matrix) in get_files():
-    ga = GeneticAlgorithm()
 
+    ga = GeneticAlgorithm()
     tour, cost = ga.evolve()
 
     write_file(filename, "A", tour + 1, cost)
+
+    print("\n")
 

@@ -104,6 +104,8 @@ for filename, (length, distance_matrix) in get_files():
 
     write_file(filename, "B", tour + 1, cost)
 
+    print("\n")
+
 
 # http://katrinaeg.com/simulated-annealing.html
 # https://github.com/chncyhn/simulated-annealing-tsp/blob/master/anneal.py
