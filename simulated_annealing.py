@@ -74,7 +74,7 @@ class SimulatedAnnealing:
 
             return 1
 
-        return math.exp(-abs(current_cost - new_cost) / temp)
+        return math.exp((current_cost - new_cost) / temp)
 
     def anneal(self):
 
@@ -99,12 +99,14 @@ class SimulatedAnnealing:
 
 for filename, (length, distance_matrix) in get_files():
 
+    print(filename + "\n")
+
     sa = SimulatedAnnealing()
     tour, cost = sa.anneal()
 
     write_file(filename, "B", tour + 1, cost)
 
-    print("\n")
+    print()
 
 
 # http://katrinaeg.com/simulated-annealing.html
@@ -113,3 +115,4 @@ for filename, (length, distance_matrix) in get_files():
 # https://arxiv.org/pdf/cs/0001018.pdf (Adaptive Simulated Annealing)
 # https://www.ingber.com/ASA-README.html
 # https://www.sciencedirect.com/science/article/pii/S0304414901000825
+# http://www.iue.tuwien.ac.at/phd/binder/node87.html

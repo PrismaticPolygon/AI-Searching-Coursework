@@ -2,7 +2,7 @@ import numpy as np
 from main import write_file, get_files
 
 # Hyperparameters
-population_size = 1000
+# population_size = 1000
 mutation_probability = 0.05
 crossover_probability = 0.7
 tournament_size = 4
@@ -125,17 +125,21 @@ class GeneticAlgorithm:
                 self.best_route = best
                 self.best_cost = cost
 
-                print("New best: ", self.best_cost)
+                print("New best: (gen. {})".format(i), self.best_cost)
 
         return self.best_route, self.best_cost
 
 
 for filename, (length, distance_matrix) in get_files():
 
+    population_size = int(0.5 * length) if ((int(0.5 * length) % 2) == 0) else int(0.5 * length) + 1
+
+    print(filename + "\n")
+
     ga = GeneticAlgorithm()
     tour, cost = ga.evolve()
 
     write_file(filename, "A", tour + 1, cost)
 
-    print("\n")
+    print()
 
