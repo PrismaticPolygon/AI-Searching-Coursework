@@ -1,19 +1,11 @@
-from main import load_file, write_file
+from main import write_file, get_files
 import numpy as np
 import math
 
-filename = "NEWAISearchfile017.txt"
-length, distance_matrix = load_file(filename)
-
 # Hyperparameters
-min_temp = 0.00001
+min_temp = 0.0001
 temp = 1
 alpha = 0.999995
-
-# Return temperature as a generator?
-# Represent parameters as continuous numbers, the dimensions of a hypercube.
-
-# I could convert this as well.
 
 
 class SimulatedAnnealing:
@@ -55,7 +47,8 @@ class SimulatedAnnealing:
 
     def generate_neighbour(self):
 
-        neighbour_difference = int(length * temp)  # So it starts off completely random! Nice. So I don't really
+        neighbour_difference = math.ceil((length - 2) * temp) + 1
+
         index = np.random.randint(1, length - neighbour_difference + 1)
 
         neighbour = np.copy(self.route)
@@ -104,10 +97,12 @@ class SimulatedAnnealing:
         return self.best_route, self.get_cost(self.best_route)
 
 
-sa = SimulatedAnnealing()
-tour, cost = sa.anneal()
+for filename, (length, distance_matrix) in get_files():
 
-write_file(filename, "B", tour + 1, cost)
+    sa = SimulatedAnnealing()
+    tour, cost = sa.anneal()
+
+    write_file(filename, "B", tour + 1, cost)
 
 
 # http://katrinaeg.com/simulated-annealing.html
