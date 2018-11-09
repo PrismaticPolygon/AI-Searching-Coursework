@@ -109,6 +109,7 @@ def temperature_schedule():
 
 # Dynamically change the number of iterations as the algorithm progresses: at higher temperatures, fewer iterations.
 
+
 def anneal():
 
     best_solution = solution = GreedySolution()
