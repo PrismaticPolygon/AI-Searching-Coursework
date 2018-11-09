@@ -1,17 +1,17 @@
 import numpy as np
-from main import load_file, write_file
-
-filename = "NEWAISearchfile042.txt"
-length, distance_matrix = load_file(filename)
+from main import write_file, get_files
 
 # Hyperparameters
-population_size = 1000
+population_size = 100
 mutation_probability = 0.05
 crossover_probability = 0.7
-tournament_size = 5
-num_generations = 1000
+tournament_size = 4
+num_generations = 250
 
-np.random.seed(1)
+# np.random.seed(1)
+
+# I wonder where the time goes.
+# Dynamically modify selection pressure.
 
 # Now, how am I going to experiment with my hyperparameters?
 # Even worse, the mean cost actually increased. Outrageous.
@@ -19,16 +19,27 @@ np.random.seed(1)
 # Or we could store the max, min, and mean fitnesses.
 # I can't believe that it's increasing...
 
+# The dynamic application of crossover and mutation operators
+# The population partial re-initialisation
+
 # The greater the tournament size, the greater the selection pressure: weak individuals have a smaller chance to be
 # selected, and strong individuals are likely to be selected multiples.
 
 # efficient to code, works on parallel architectures, allows for selection pressure to be easily adjusted,
 # independent of the scaling of the GA fitness function
+# That said, it still hasn't fully converged.
 
 # Best is still only around 1974
+# To regain genetic variation: incest prevention, uniform crossover, favoured replacement of similar individuals
+# segmentation of individuals of similar fitness, increasing population size.
+# A single 'selection pressure' variable to vary would be cool.
 
 # Convergence check.
+# Store data from each generation, also write somewhere?
+# If the same individual has been best for more than 10% of the time...
 
+# A kernel function is a GPU function mean to be called from CPU code. Cannot explicitly return
+#  a value. All result data must be written to an array passed to the function.
 
 class GeneticAlgorithm:
 
@@ -68,6 +79,8 @@ class GeneticAlgorithm:
             cost += distance_matrix[individual[i - 1], individual[i]]
 
         return cost
+
+    # Probably means I should move my mutation check, right?
 
     def mutate(self):
 
@@ -135,15 +148,15 @@ class GeneticAlgorithm:
 
             best, cost = self.get_best()
 
-            print(str(self.get_mean_cost()), str(cost))
+            print(str(i) + ": " + str(self.get_mean_cost()) + ", " + str(cost))
 
         return self.get_best()
 
 
-ga = GeneticAlgorithm()
+for filename, (length, distance_matrix) in get_files():
+    ga = GeneticAlgorithm()
 
-tour, cost = ga.evolve()
+    tour, cost = ga.evolve()
 
-write_file(filename, "A", tour + 1, cost)
-#
-# print(best)
+    write_file(filename, "A", tour + 1, cost)
+

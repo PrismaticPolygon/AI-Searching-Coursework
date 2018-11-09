@@ -7,7 +7,7 @@ def get_files():
 
     for file in os.listdir("search_data"):
 
-        yield load_file(file)
+        yield file, load_file(file)
 
 
 def load_file(filename):
@@ -45,7 +45,7 @@ def write_file(filename, algorithm, tour, length):
 
     def write():
 
-        print("Writing to file: ", algorithm, tour, length)
+        print("Writing to {}: ".format(filename), algorithm, tour, length)
 
         with open("tour_data/Tourfile" + algorithm + "/tour" + filename, "w") as f:
 
