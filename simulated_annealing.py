@@ -2,144 +2,113 @@ from main import load_file, write_file
 import numpy as np
 import math
 
-# Hyperparameters
-min_temp = 0.0001
-temp = 1
-alpha = 0.995
-neighbourhood_size = 300
 filename = "NEWAISearchfile017.txt"
-size, distance_matrix = load_file(filename)
+length, distance_matrix = load_file(filename)
+
+# Hyperparameters
+min_temp = 0.00001
+temp = 1
+alpha = 0.999995
 
 # Return temperature as a generator?
 # Represent parameters as continuous numbers, the dimensions of a hypercube.
 
+# I could convert this as well.
 
-class Solution:
 
-    def generate_route(self):
+class SimulatedAnnealing:
 
-        return np.random.choice(size, size, replace=False) + 1
+    def __init__(self):
 
-    def generate_cost(self):
+        route = np.full(length, -1, dtype=int)
+        route[0] = np.random.choice(length)
 
-        cost = distance_matrix[self.route[0] - 1, self.route[-1] - 1]
+        for i in range(1, length):
 
-        for i in range(1, size):
+            start, next = route[i - 1], None
 
-            cost += distance_matrix[self.route[i - 1] - 1, self.route[i] - 1]
+            for j in range(length):
+
+                if j not in route:
+
+                    if next is None:
+
+                        next = j
+
+                    elif distance_matrix[start, j] < distance_matrix[start, next]:
+
+                        next = j
+
+            route[i] = next
+
+        self.best_route = self.route = route
+
+    def get_cost(self, route):
+
+        cost = distance_matrix[route[-1], route[0]]
+
+        for i in range(1, length):
+
+            cost += distance_matrix[route[i - 1], route[i]]
 
         return cost
 
-    def __init__(self, route=None):
+    def generate_neighbour(self):
 
-        self.route = route if route is not None else self.generate_route()
-        self.cost = self.generate_cost()
+        neighbour_difference = int(length * temp)  # So it starts off completely random! Nice. So I don't really
+        index = np.random.randint(1, length - neighbour_difference + 1)
 
-    @classmethod
-    def from_route(cls, route):
+        neighbour = np.copy(self.route)
 
-        return cls(route)
+        np.random.shuffle(neighbour[index: neighbour_difference])
 
-    def generate_neighbours(self):
+        return neighbour
 
-        i = 0
+    def temperature_schedule(self):
 
-        while i < neighbourhood_size:
+        global temp, min_temp, alpha
 
-            index = np.random.randint(1, size)
+        while temp > min_temp:
+            temp *= alpha
 
-            neighbour_route = np.copy(self.route)
-            neighbour_route[index], neighbour_route[index - 1] = neighbour_route[index - 1], neighbour_route[index]
+            yield temp
 
-            yield Solution.from_route(neighbour_route)
+    def accept(self, route):
 
-            i += 1
+        current_cost, new_cost = self.get_cost(self.route), self.get_cost(route)
 
-    def __str__(self):
+        if new_cost < current_cost:
 
-        return str(self.cost) + ": " + " -> ".join(map(str, self.route))
+            return 1
 
+        return math.exp(-abs(current_cost - new_cost) / temp)
 
-class GreedySolution(Solution):
+    def anneal(self):
 
-    def generate_route(self):
+        print("Initial route: ", self.get_cost(self.route))
 
-        route = np.zeros(size, dtype=int)
-        route[0] = np.random.choice(size) + 1
+        for temp in self.temperature_schedule():
 
-        for i in range(1, size):
+            neighbour = self.generate_neighbour()
 
-            min, min_index, cur_index = math.inf, 0, route[i - 1] - 1
+            if self.accept(neighbour) > np.random.rand():
 
-            for j in range(size):
+                self.route = neighbour
 
-                cost = distance_matrix[cur_index, j]
+                if self.get_cost(neighbour) < self.get_cost(self.best_route):
 
-                if j == cur_index:  # The case where the index points to itself.
+                    self.best_route = neighbour
 
-                    continue
+                    print("New best: ", self.get_cost(self.best_route))
 
-                if (j + 1) not in route and cost < min:
-
-                    min, min_index = cost, (j + 1)
-
-            route[i] = min_index
-
-        return route
+        return self.best_route, self.get_cost(self.best_route)
 
 
-def acceptance_probability(old, new):
+sa = SimulatedAnnealing()
+tour, cost = sa.anneal()
 
-    if new.cost < old.cost:
+write_file(filename, "B", tour + 1, cost)
 
-        return 1
-
-    return math.exp(-abs(old.cost - new.cost) / temp)
-
-
-def temperature_schedule():
-
-    global temp, min_temp, alpha
-
-    while temp > min_temp:
-
-        temp *= alpha
-
-        yield temp
-
-# Dynamically change the number of iterations as the algorithm progresses: at higher temperatures, fewer iterations.
-
-
-def anneal():
-
-    best_solution = solution = GreedySolution()
-
-    print(solution)
-
-    print("\nCommencing annealing...\n")
-
-    for temp in temperature_schedule():
-
-        for neighbour in solution.generate_neighbours():
-
-            if acceptance_probability(solution, neighbour) > np.random.rand():
-
-                solution = neighbour
-
-                if neighbour.cost < best_solution.cost:
-
-                    best_solution = neighbour
-
-                    print("New best: " + str(best_solution))
-
-    return best_solution
-
-
-result = anneal()
-
-print(result)
-
-# write_file(filename, result.route, result.cost)
 
 # http://katrinaeg.com/simulated-annealing.html
 # https://github.com/chncyhn/simulated-annealing-tsp/blob/master/anneal.py
