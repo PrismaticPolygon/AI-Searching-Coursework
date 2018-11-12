@@ -1,17 +1,14 @@
 import numpy as np
 from main import write_file, get_files
 
-# Hyperparameters
-# population_size = 1000
-mutation_probability = 0.05
-crossover_probability = 0.7
-tournament_size = 4
-num_generations = 250
-
 # Dynamically modify selection pressure and operators used
 # Re-initialise population after convergence
 # To regain genetic variation: incest prevention, uniform crossover, favoured replacement of similar individuals,
 # segmentation of individuals of similar fitness, increasing population size.
+
+# Let's remove the num_generations constraint, and instead calculate convergence.
+
+# FUSS: steadily increase the population size. If memory becomes an issue, delete individuals.
 
 
 class GeneticAlgorithm:
@@ -25,8 +22,16 @@ class GeneticAlgorithm:
             self.population[i] = np.random.choice(length, length, replace=False)
 
         self.best_route, self.best_cost = self.get_best()
+        self.best_generation = 0
 
         print("Initial cost: ", self.best_cost)
+
+    # I am frankly concerned that they haven't converged.
+    # How to calculate diversity? Get the mean of the rows, and if it's too close to... something, terminate?
+    # Ah, P is pop size. VERY EASY to calculate.
+
+    # Implies that there's a fair bit of variance, none?
+    # This is absurd!
 
     def get_mean_cost(self):
 
@@ -37,6 +42,32 @@ class GeneticAlgorithm:
             sum += self.get_cost(i)
 
         return sum / population_size
+
+    def mean_individual(self):
+
+        mean = np.sum(self.population, axis=0) / population_size
+
+        # Maybe I should sum them up... but why? Get the average per thing.
+        # That'll just be half the length, idiota.
+
+        # Then they'll look very different, when in reality they really aren't.
+
+        variance = np.sum(np.sum((self.population - mean) ** 2)) / population_size
+
+        # Still an impressive amount of variance... Even after 1000 iterations!
+        # It should converge eventually, right? Unless they have the same
+        # Oh. Increase tournament size.
+
+        print(variance)
+
+        # How the fuck is there variation with a tournament size of 10? Seriously, what the fuck?
+        # Some must have equal fitness, perhaps? Depends on behaviour of max.
+
+        # Sum each column, have summed that row co-ordinate using (x - ci) ^ 2
+
+        # Only works for binary strings, right?
+
+        return mean
 
     def get_best(self):
 
@@ -124,6 +155,7 @@ class GeneticAlgorithm:
 
                 self.best_route = best
                 self.best_cost = cost
+                self.best_generation = i
 
                 print("New best: (gen. {})".format(i), self.best_cost)
 
@@ -132,14 +164,38 @@ class GeneticAlgorithm:
 
 for filename, (length, distance_matrix) in get_files():
 
-    population_size = int(0.5 * length) if ((int(0.5 * length) % 2) == 0) else int(0.5 * length) + 1
+    # Optimum results for up to 42 cities! It's got to be done.
+
+    # Store the generation that the best individual was found at.
+    # But then I get to tiny mutation rates. OHHHHH, it's per bit! Doesn't make much sense here: cumulative?
+    # But then the number of flipped bits will be constant. Solution?
+    # And, of course, DM doesn't matter much here: every vertex is connected to every other.
+    # As fitness, subtract each tour length from the maximum in the population. Interesting! Shouldn't matter...
+    # should it? I doubt it.
+
+    # Fascinating. Try to find k element by element, trying.
+    # Only consider sequences of gains whose partial sum is always positive.
+
+    population_size = 1000
+    mutation_probability = 0.05
+    crossover_probability = 0.8
+    tournament_size = 8
+    num_generations = 5000
 
     print(filename + "\n")
 
     ga = GeneticAlgorithm()
     tour, cost = ga.evolve()
 
+    # I already have that data.
+
     write_file(filename, "A", tour + 1, cost)
 
     print()
 
+# Alternate with hill climbing. Interesting.
+
+# https://pdfs.semanticscholar.org/39f0/b09c38f60537ee28eb836a51466d0cd1a787.pdf
+# https://en.wikipedia.org/wiki/Genetic_algorithm
+
+# Should have included references.

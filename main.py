@@ -5,7 +5,7 @@ import os
 
 def get_files():
 
-    for file in os.listdir("search_data"):
+    for file in reversed(os.listdir("search_data")):
 
         yield file, load_file(file)
 
