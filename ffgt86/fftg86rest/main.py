@@ -1,21 +1,22 @@
 import numpy as np
 import re
 import os
-from fftg86rest.simulated_annealing import SimulatedAnnealing
-from fftg86rest.genetic_algorithm import GeneticAlgorithm
-from validtourcheck import tc
+from ffgt86.fftg86rest.simulated_annealing import SimulatedAnnealing
+from ffgt86.fftg86rest.genetic_algorithm import GeneticAlgorithm
 
 
 def get_files():
 
-    for file in (os.listdir("cityfiles")):
+    for file in (os.listdir("../../cityfiles")):
 
-        yield file, load_search_file(file)
+        if file != "AISearchtestcase.txt":
+
+            yield file, load_search_file(file)
 
 
 def load_search_file(filename):
 
-    with open("cityfiles/" + filename, "r") as file:
+    with open("../../cityfiles/" + filename, "r") as file:
 
         data = file.read().replace("\n", '').split(",")
 
@@ -46,7 +47,7 @@ def load_search_file(filename):
 
 def load_tour_file(filename, algorithm="A"):
 
-    with open("Tourfile" + algorithm + "/tour" + filename, 'r') as file:
+    with open("../Tourfile" + algorithm + "/tour" + filename, 'r') as file:
 
         length, tour = 0, []
 
@@ -67,13 +68,7 @@ def load_tour_file(filename, algorithm="A"):
 
 def write_file(filename, algorithm, tour, length):
 
-    # I/O operation on closed file.
-
-    tour_filename = "Tourfile" + algorithm + "/tour" + filename
-
-    result = tc("cityfiles/" + filename, tour_filename)
-
-    print(result)
+    tour_filename = "../Tourfile" + algorithm + "/tour" + filename
 
     def write():
 
@@ -91,8 +86,6 @@ def write_file(filename, algorithm, tour, length):
             finally:
 
                 f.close()
-
-        # I should check here, I guess. But how?
 
     try:
 
