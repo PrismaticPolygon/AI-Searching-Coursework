@@ -1,70 +1,38 @@
-from main import write_file, get_files
 import numpy as np
-import math
-
-# Hyperparameters
-min_temp = 0.0001
-temp = 1
-alpha = 0.999995
 
 
 class SimulatedAnnealing:
 
-    def __init__(self):
+    def __init__(self, distance_matrix, length, temp=1, min_temp=0.001, alpha=0.9999):
 
-        route = np.full(length, -1, dtype=int)
-        route[0] = np.random.choice(length)
+        self.distance_matrix = distance_matrix
+        self.length = length
+        self.temp = temp
+        self.min_temp = min_temp
+        self.alpha = alpha
 
-        for i in range(1, length):
-
-            start, next = route[i - 1], None
-
-            for j in range(length):
-
-                if j not in route:
-
-                    if next is None:
-
-                        next = j
-
-                    elif distance_matrix[start, j] < distance_matrix[start, next]:
-
-                        next = j
-
-            route[i] = next
-
-        self.best_route = self.route = route
+        self.best_route = self.route = np.random.choice(length, length, replace=False)
 
     def get_cost(self, route):
 
-        cost = distance_matrix[route[-1], route[0]]
+        cost = self.distance_matrix[route[-1], route[0]]
 
-        for i in range(1, length):
+        for i in range(1, self.length):
 
-            cost += distance_matrix[route[i - 1], route[i]]
+            cost += self.distance_matrix[route[i - 1], route[i]]
 
         return cost
 
     def generate_neighbour(self):
 
-        neighbour_difference = math.ceil((length - 2) * temp) + 1
-
-        index = np.random.randint(1, length - neighbour_difference + 1)
+        points = [np.random.randint(0, self.length) for x in range(2)]
+        low, high = min(points), max(points)
 
         neighbour = np.copy(self.route)
 
-        np.random.shuffle(neighbour[index: neighbour_difference])
+        neighbour[low: high] = neighbour[low: high][::-1]
 
         return neighbour
-
-    def temperature_schedule(self):
-
-        global temp, min_temp, alpha
-
-        while temp > min_temp:
-            temp *= alpha
-
-            yield temp
 
     def accept(self, route):
 
@@ -74,13 +42,11 @@ class SimulatedAnnealing:
 
             return 1
 
-        return math.exp((current_cost - new_cost) / temp)
+        return np.exp((current_cost - new_cost) / self.temp)
 
     def anneal(self):
 
-        print("Initial route: ", self.get_cost(self.route))
-
-        for temp in self.temperature_schedule():
+        while self.temp > self.min_temp:
 
             neighbour = self.generate_neighbour()
 
@@ -92,21 +58,11 @@ class SimulatedAnnealing:
 
                     self.best_route = neighbour
 
-                    print("New best: ", self.get_cost(self.best_route))
+                    print("New best (temp = {:.4f}): ".format(self.temp), self.get_cost(self.best_route))
 
-        return self.best_route, self.get_cost(self.best_route)
+            self.temp *= self.alpha
 
-
-for filename, (length, distance_matrix) in get_files():
-
-    print(filename + "\n")
-
-    sa = SimulatedAnnealing()
-    tour, cost = sa.anneal()
-
-    write_file(filename, "B", tour + 1, cost)
-
-    print()
+        return self.best_route + 1, self.get_cost(self.best_route)
 
 
 # http://katrinaeg.com/simulated-annealing.html
@@ -116,3 +72,4 @@ for filename, (length, distance_matrix) in get_files():
 # https://www.ingber.com/ASA-README.html
 # https://www.sciencedirect.com/science/article/pii/S0304414901000825
 # http://www.iue.tuwien.ac.at/phd/binder/node87.html
+# http://toddwschneider.com/posts/traveling-salesman-with-simulated-annealing-r-and-shiny/

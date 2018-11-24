@@ -1,16 +1,18 @@
 import numpy as np
 import re
 import os
+from simulated_annealing import SimulatedAnnealing
+from genetic_algorithm import GeneticAlgorithm
 
 
 def get_files():
 
-    for file in reversed(os.listdir("search_data")):
+    for file in (os.listdir("search_data")):
 
-        yield file, load_file(file)
+        yield file, load_search_file(file)
 
 
-def load_file(filename):
+def load_search_file(filename):
 
     with open("search_data/" + filename, "r") as file:
 
@@ -38,7 +40,28 @@ def load_file(filename):
 
             i += 1
 
-    return matrix.shape[0], matrix
+    return matrix, matrix.shape[0]
+
+
+def load_tour_file(filename, algorithm="A"):
+
+    with open("tour_data/Tourfile" + algorithm + "/tour" + filename, 'r') as file:
+
+        length, tour = 0, []
+
+        for i, line in enumerate(file):
+
+            text = line.replace("\n", '')
+
+            if i == 1:
+
+                length = int(text[11:-1])
+
+            if i == 3:
+
+                tour = [int(x) - 1 for x in text.split(",")]
+
+        return length, tour
 
 
 def write_file(filename, algorithm, tour, length):
@@ -75,16 +98,24 @@ def write_file(filename, algorithm, tour, length):
         write()
 
 
-# 12: 56
-# 17: 1200
-# 21: 2321
-# 26: 1576
-# 42: 1177
-# 48: 12203
-# 58: 21245
-# 175: 21763
-# 535: 51341
+for filename, (distance_matrix, length) in get_files():
+
+    print(filename + "\n")
+    print("Genetic algorithm\n")
+
+    ga = GeneticAlgorithm(distance_matrix, length)
+    ga_tour, ga_cost = ga.evolve()
+    write_file(filename, "A", ga_tour, ga_cost)
+
+    print("\nSimulated annealing\n")
+
+    sa = SimulatedAnnealing(distance_matrix, length)
+    sa_tour, sa_cost = sa.anneal()
+    write_file(filename, "B", sa_tour, sa_cost)
+
+    print()
 
 
+# https://docs.google.com/spreadsheets/d/13n9x-0Ku8gHjIM7GtHWo_Bn4CxZeCflTKLr9-U3KTZw/edit#gid=0
 
 #TODO: catch bad file names

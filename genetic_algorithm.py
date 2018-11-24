@@ -1,5 +1,4 @@
 import numpy as np
-from main import write_file, get_files
 
 # Dynamically modify selection pressure and operators used
 # Re-initialise population after convergence
@@ -13,7 +12,16 @@ from main import write_file, get_files
 
 class GeneticAlgorithm:
 
-    def __init__(self):
+    def __init__(self, distance_matrix, length, population_size=200, mutation_probability=0.05,
+                 crossover_probability=0.7, tournament_size=2, num_generations=1000):
+
+        self.distance_matrix = distance_matrix
+        self.length = length
+        self.population_size = population_size
+        self.mutation_probability = mutation_probability
+        self.crossover_probability = crossover_probability
+        self.tournament_size = tournament_size
+        self.num_generations = num_generations
 
         self.population = np.zeros((population_size, length), dtype=int)
 
@@ -23,8 +31,6 @@ class GeneticAlgorithm:
 
         self.best_route, self.best_cost = self.get_best()
         self.best_generation = 0
-
-        print("Initial cost: ", self.best_cost)
 
     # I am frankly concerned that they haven't converged.
     # How to calculate diversity? Get the mean of the rows, and if it's too close to... something, terminate?
@@ -37,22 +43,22 @@ class GeneticAlgorithm:
 
         sum = 0
 
-        for i in range(population_size):
+        for i in range(self.population_size):
 
             sum += self.get_cost(i)
 
-        return sum / population_size
+        return sum / self.population_size
 
     def mean_individual(self):
 
-        mean = np.sum(self.population, axis=0) / population_size
+        mean = np.sum(self.population, axis=0) / self.population_size
 
         # Maybe I should sum them up... but why? Get the average per thing.
         # That'll just be half the length, idiota.
 
         # Then they'll look very different, when in reality they really aren't.
 
-        variance = np.sum(np.sum((self.population - mean) ** 2)) / population_size
+        variance = np.sum(np.sum((self.population - mean) ** 2)) / self.population_size
 
         # Still an impressive amount of variance... Even after 1000 iterations!
         # It should converge eventually, right? Unless they have the same
@@ -71,7 +77,7 @@ class GeneticAlgorithm:
 
     def get_best(self):
 
-        best_index = min([x for x in range(population_size)], key=lambda i: self.get_cost(i))
+        best_index = min([x for x in range(self.population_size)], key=lambda i: self.get_cost(i))
 
         return self.population[best_index], self.get_cost(best_index)
 
@@ -79,23 +85,23 @@ class GeneticAlgorithm:
 
         individual = self.population[i]
 
-        cost = distance_matrix[individual[-1], individual[0]]
+        cost = self.distance_matrix[individual[-1], individual[0]]
 
         for i in range(1, len(individual)):
 
-            cost += distance_matrix[individual[i - 1], individual[i]]
+            cost += self.distance_matrix[individual[i - 1], individual[i]]
 
         return cost
 
     def mutate(self):
 
-        for i in range(population_size):
+        for i in range(self.population_size):
 
-            if mutation_probability >= np.random.rand():
+            if self.mutation_probability >= np.random.rand():
 
-                points = [np.random.randint(0, length) for x in range(2)]
+                points = [np.random.randint(0, self.length) for x in range(2)]
                 low, high = min(points), max(points)
-                insert = np.random.randint(0, length - high + low)
+                insert = np.random.randint(0, self.length - high + low)
 
                 subtour = self.population[i][low: high]
                 new = np.concatenate((self.population[i][:low], self.population[i][high:]))
@@ -104,17 +110,17 @@ class GeneticAlgorithm:
 
     def breed(self):
 
-        children = np.empty((population_size, length), dtype=int)
+        children = np.empty((self.population_size, self.length), dtype=int)
 
         def select():
 
-            competitors = np.random.choice(population_size, tournament_size, replace=False)
+            competitors = np.random.choice(self.population_size, self.tournament_size, replace=False)
 
             return self.population[min(competitors, key=lambda i: self.get_cost(i))]
 
         def crossover(parents):
 
-            points = [np.random.randint(0, length) for x in range(2)]
+            points = [np.random.randint(0, self.length) for x in range(2)]
             low, high = min(points), max(points)
 
             for j, parent in enumerate(parents):
@@ -123,16 +129,16 @@ class GeneticAlgorithm:
                 middle = parent[low:high]
                 remaining = np.setdiff1d(other_parent, middle, assume_unique=True)
 
-                end = remaining[:length - high]
-                start = remaining[length - high:]
+                end = remaining[:self.length - high]
+                start = remaining[self.length - high:]
 
                 children[i + j] = np.concatenate((start, middle, end))
 
-        for i in range(0, population_size, 2):
+        for i in range(0, self.population_size, 2):
 
             parents = [select(), select()]
 
-            if crossover_probability >= np.random.rand():
+            if self.crossover_probability >= np.random.rand():
 
                 crossover([select(), select()])
 
@@ -144,7 +150,7 @@ class GeneticAlgorithm:
 
     def evolve(self):
 
-        for i in range(num_generations):
+        for i in range(self.num_generations):
 
             self.breed()
             self.mutate()
@@ -157,12 +163,10 @@ class GeneticAlgorithm:
                 self.best_cost = cost
                 self.best_generation = i
 
-                print("New best: (gen. {})".format(i), self.best_cost)
+                print("New best (gen. {}):".format(i), self.best_cost)
 
-        return self.best_route, self.best_cost
+        return self.best_route + 1, self.best_cost
 
-
-for filename, (length, distance_matrix) in get_files():
 
     # Optimum results for up to 42 cities! It's got to be done.
 
@@ -175,23 +179,6 @@ for filename, (length, distance_matrix) in get_files():
 
     # Fascinating. Try to find k element by element, trying.
     # Only consider sequences of gains whose partial sum is always positive.
-
-    population_size = 1000
-    mutation_probability = 0.05
-    crossover_probability = 0.8
-    tournament_size = 8
-    num_generations = 5000
-
-    print(filename + "\n")
-
-    ga = GeneticAlgorithm()
-    tour, cost = ga.evolve()
-
-    # I already have that data.
-
-    write_file(filename, "A", tour + 1, cost)
-
-    print()
 
 # Alternate with hill climbing. Interesting.
 
