@@ -7,7 +7,7 @@ from ffgt86.fftg86rest.genetic_algorithm import GeneticAlgorithm
 
 def get_files():
 
-    for file in (os.listdir("../../cityfiles")):
+    for file in reversed(os.listdir("../../cityfiles")):
 
         if file != "AISearchtestcase.txt":
 
@@ -106,8 +106,9 @@ print("\nRunning algorithms...\n")
 
 for filename, (distance_matrix, length) in get_files():
 
-    print(filename + "\n")
-    print("Genetic algorithm\n")
+    print(filename)
+
+    print("\nGenetic algorithm\n")
 
     ga = GeneticAlgorithm(distance_matrix, length)
     ga_tour, ga_cost = ga.evolve()
@@ -120,9 +121,3 @@ for filename, (distance_matrix, length) in get_files():
     write_file(filename, "B", sa_tour, sa_cost)
 
     print()
-
-
-# https://docs.google.com/spreadsheets/d/13n9x-0Ku8gHjIM7GtHWo_Bn4CxZeCflTKLr9-U3KTZw/edit#gid=0
-
-#TODO: catch bad file names
-#TODO: delete testcase

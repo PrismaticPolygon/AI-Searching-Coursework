@@ -3,7 +3,7 @@ import numpy as np
 
 class SimulatedAnnealing:
 
-    def __init__(self, distance_matrix, length, temp=1, min_temp=0.001, alpha=0.9999):
+    def __init__(self, distance_matrix, length, temp=1, min_temp=0.00001, alpha=0.99995):
 
         self.distance_matrix = distance_matrix
         self.length = length
@@ -11,7 +11,28 @@ class SimulatedAnnealing:
         self.min_temp = min_temp
         self.alpha = alpha
 
-        self.best_route = self.route = np.random.choice(length, length, replace=False)
+        route = np.full(length, -1, dtype=int)
+        route[0] = np.random.choice(length)
+
+        for i in range(1, length):
+
+            start, next = route[i - 1], None
+
+            for j in range(length):
+
+                if j not in route:
+
+                    if next is None:
+
+                        next = j
+
+                    elif distance_matrix[start, j] < distance_matrix[start, next]:
+
+                        next = j
+
+            route[i] = next
+
+        self.best_route = self.route = route
 
     def get_cost(self, route):
 
@@ -58,7 +79,7 @@ class SimulatedAnnealing:
 
                     self.best_route = neighbour
 
-                    print("New best (temp = {:.4f}): ".format(self.temp), self.get_cost(self.best_route))
+                    print("New best (temp = {:.5f}):".format(self.temp), self.get_cost(self.best_route))
 
             self.temp *= self.alpha
 
