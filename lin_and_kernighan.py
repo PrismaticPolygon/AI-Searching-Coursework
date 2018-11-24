@@ -1,8 +1,8 @@
-from main import load_file
+from main import load_search_file
 import numpy as np
 import random
 
-size, distance_matrix = load_file("AISearchtestcase.txt")
+size, distance_matrix = load_search_file("AISearchtestcase.txt")
 
 # Let's generate T as a list of tuples. To keep it in line with S!
 
@@ -251,11 +251,6 @@ g2_star = gain(y2_star, x2)
 # If the sum of gains - excluding the most recent plus the newly generated gain is greater than the sum of gains,
 # switch it up.
 # It's the Kleene star: G* is the union of all Gs. Which just means the sum of gains, right?
-
-if g2_star > g1_star:
-
-# Where do the Kleene stars come into this?
-
 
 
 # If the previous value of G + g2_star is greater than G*.

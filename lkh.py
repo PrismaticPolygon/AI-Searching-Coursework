@@ -1,9 +1,9 @@
-from main import load_file
+from main import load_search_file
 # An optimal tour is a minimum 1-tree where every node has degree 2.
 # If a minimum 1-tree is a tour, then the tour is optimal.
 
 filename = "AISearchtestcase.txt"
-size, distance_matrix = load_file(filename)
+size, distance_matrix = load_search_file(filename)
 
 # Hyperparameters
 runs = 10  # The total number of runs
