@@ -18,7 +18,7 @@ def charnum(astring):
 
 def tc(inputfile,inputtourfile):
 
-    f = open(inputfile,'r')  # read in search_data character by character
+    f = open(inputfile,'r')  # read in cityfiles character by character
     x = f.read(1)            # and strip away rubbish
     flag = "good"
     d = ""
@@ -223,7 +223,7 @@ def tc(inputfile,inputtourfile):
 import os
 
 interested_dir_list = []  # directories I'm interested in (empty if all)
-ignore_dir_list = ['IainsExecutions','cityfiles','LastYearsAnswers','Old stuff']  # directories I'm not interested in
+ignore_dir_list = ['IainsExecutions','cityfiles','LastYearsAnswers','Old stuff', '__pycache__', '.git', '.idea', 'ffgt86rest']  # directories I'm not interested in
 
 interested_tourfile_dir_list = ['TourfileA','TourfileB','TourfileC']  # tour file directories I'm interested in
 
@@ -333,6 +333,7 @@ else:
             
             subdirlist = []
             for eachitem in os.listdir('.'):  # get directories in 'currentdir'
+
                 if os.path.isdir(eachitem):   # check that an item is a directory
                     interested = False
                     num_interested_dir = len(interested_tourfile_dir_list)
