@@ -65,9 +65,19 @@ class SimulatedAnnealing:
 
         return np.exp((current_cost - new_cost) / self.temp)
 
+    def temperature_schedule(self):
+
+        if self.temp > self.min_temp:
+
+            self.temp *= self.alpha
+
+            return True
+
+        return False
+
     def anneal(self):
 
-        while self.temp > self.min_temp:
+        while self.temperature_schedule():
 
             neighbour = self.generate_neighbour()
 
@@ -80,8 +90,6 @@ class SimulatedAnnealing:
                     self.best_route = neighbour
 
                     print("New best (temp = {:.5f}):".format(self.temp), self.get_cost(self.best_route))
-
-            self.temp *= self.alpha
 
         return self.best_route + 1, self.get_cost(self.best_route)
 
