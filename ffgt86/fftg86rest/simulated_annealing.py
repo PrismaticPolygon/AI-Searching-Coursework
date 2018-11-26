@@ -4,13 +4,13 @@ import time
 
 class SimulatedAnnealing:
 
-    def __init__(self, distance_matrix, length, temp=1, min_temp=1, alpha=1):
+    def __init__(self, distance_matrix, length, min_temp=1, alpha=1, runtime=60):
 
         self.distance_matrix = distance_matrix
         self.length = length
-        self.temp = temp
-        self.min_temp = min_temp
+        self.temp = self.min_temp = min_temp
         self.alpha = alpha
+        self.runtime = runtime
         self.r = 0
         self.tabu = []
         self.start_time = time.time()
@@ -78,7 +78,7 @@ class SimulatedAnnealing:
 
     def adaptive_temperature_schedule(self):
 
-        if time.time() - self.start_time < 60:
+        if time.time() - self.start_time < self.runtime:
 
             self.temp = self.min_temp + self.alpha * np.log(1 + self.r)
 
