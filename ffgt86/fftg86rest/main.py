@@ -78,7 +78,7 @@ def write_file(filename, algorithm, tour, length):
 
             try:
 
-                f.write("NAME = " + filename[:-4] + ",\n")
+                f.write("NAME = " + filename[3:-4] + ",\n")
                 f.write("TOURSIZE = " + str(tour.size) + ",\n")
                 f.write("LENGTH = " + str(length) + ",\n")
                 f.write(",".join(map(str, tour)))
