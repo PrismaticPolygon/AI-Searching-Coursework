@@ -1,15 +1,19 @@
 import numpy as np
+import time
 
 
 class SimulatedAnnealing:
 
-    def __init__(self, distance_matrix, length, temp=1, min_temp=0.00001, alpha=0.99995):
+    def __init__(self, distance_matrix, length, temp=1, min_temp=1, alpha=1):
 
         self.distance_matrix = distance_matrix
         self.length = length
         self.temp = temp
         self.min_temp = min_temp
         self.alpha = alpha
+        self.r = 0
+        self.tabu = []
+        self.start_time = time.time()
 
         route = np.full(length, -1, dtype=int)
         route[0] = np.random.choice(length)
@@ -33,6 +37,7 @@ class SimulatedAnnealing:
             route[i] = next
 
         self.best_route = self.route = route
+        self.tabu.append(route.tolist())
 
     def get_cost(self, route):
 
@@ -61,15 +66,21 @@ class SimulatedAnnealing:
 
         if new_cost < current_cost:
 
-            return 1
+            self.r = 0
+            return True
 
-        return np.exp((current_cost - new_cost) / self.temp)
+        elif np.exp((current_cost - new_cost) / self.temp) > np.random.rand():
 
-    def temperature_schedule(self):
+            self.r += 1
+            return True
 
-        if self.temp > self.min_temp:
+        return False
 
-            self.temp *= self.alpha
+    def adaptive_temperature_schedule(self):
+
+        if time.time() - self.start_time < 60:
+
+            self.temp = self.min_temp + self.alpha * np.log(1 + self.r)
 
             return True
 
@@ -77,28 +88,19 @@ class SimulatedAnnealing:
 
     def anneal(self):
 
-        while self.temperature_schedule():
+        while self.adaptive_temperature_schedule():
 
             neighbour = self.generate_neighbour()
 
-            if self.accept(neighbour) > np.random.rand():
+            if self.accept(neighbour) and neighbour.tolist() not in self.tabu:
 
                 self.route = neighbour
+                self.tabu.append(neighbour.tolist())
 
-                if self.get_cost(neighbour) < self.get_cost(self.best_route):
+                if self.get_cost(self.route) < self.get_cost(self.best_route):
 
-                    self.best_route = neighbour
+                    self.best_route = self.route
 
                     print("New best (temp = {:.5f}):".format(self.temp), self.get_cost(self.best_route))
 
         return self.best_route + 1, self.get_cost(self.best_route)
-
-
-# http://katrinaeg.com/simulated-annealing.html
-# https://github.com/chncyhn/simulated-annealing-tsp/blob/master/anneal.py
-# http://www.psychicorigami.com/2007/06/28/tackling-the-travelling-salesman-problem-simmulated-annealing/
-# https://arxiv.org/pdf/cs/0001018.pdf (Adaptive Simulated Annealing)
-# https://www.ingber.com/ASA-README.html
-# https://www.sciencedirect.com/science/article/pii/S0304414901000825
-# http://www.iue.tuwien.ac.at/phd/binder/node87.html
-# http://toddwschneider.com/posts/traveling-salesman-with-simulated-annealing-r-and-shiny/
