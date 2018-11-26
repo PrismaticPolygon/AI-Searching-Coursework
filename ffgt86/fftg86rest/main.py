@@ -7,7 +7,7 @@ from ffgt86.fftg86rest.genetic_algorithm import GeneticAlgorithm
 
 def get_files():
 
-    for file in reversed(os.listdir("../../cityfiles")):
+    for file in (os.listdir("../../cityfiles")):
 
         if file != "AISearchtestcase.txt":
 
@@ -114,10 +114,10 @@ for filename, (distance_matrix, length) in get_files():
     ga_tour, ga_cost = ga.evolve()
     write_file(filename, "A", ga_tour, ga_cost)
 
-    print("\nSimulated annealing\n")
-
-    sa = SimulatedAnnealing(distance_matrix, length)
-    sa_tour, sa_cost = sa.anneal()
-    write_file(filename, "B", sa_tour, sa_cost)
+    # print("\nSimulated annealing\n")
+    #
+    # sa = SimulatedAnnealing(distance_matrix, length)
+    # sa_tour, sa_cost = sa.anneal()
+    # write_file(filename, "B", sa_tour, sa_cost)
 
     print()
