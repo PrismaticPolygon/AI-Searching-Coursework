@@ -3,8 +3,8 @@ import numpy as np
 
 class GeneticAlgorithm:
 
-    def __init__(self, distance_matrix, length, population_size=100, mutation_probability=0.05,
-                 crossover_probability=0.7, tournament_size=3, num_generations=2000):
+    def __init__(self, distance_matrix, length, mutation_probability=0.35,
+                 crossover_probability=0.55, tournament_size=6, num_generations=1000, population_size=100):
 
         self.distance_matrix = distance_matrix
         self.length = length
@@ -28,22 +28,6 @@ class GeneticAlgorithm:
         best_index = min([x for x in range(self.population_size)], key=lambda i: self.get_cost(i))
 
         return self.population[best_index], self.get_cost(best_index)
-
-    def get_average(self):
-
-        cost_sum = 0
-
-        for i in range(self.population_size):
-
-            cost_sum += self.get_cost(i)
-
-        return cost_sum / self.population_size
-
-    def get_selection_pressure(self):
-
-        # About 1.1 is desirable, apparently.
-
-        return self.get_average() / self.get_best()[1]
 
     def get_cost(self, i):
 
@@ -72,16 +56,6 @@ class GeneticAlgorithm:
 
                 self.population[i] = np.concatenate((new[:insert], subtour, new[insert:]))
 
-    # Tournament selection currently used in conjunction with 'noisy' fitness functions.
-    # The selection pressure is the degree to which the better individuals are favoured.
-    # Increase selection pressure by increasing the tournament size: winner will on average have a higher fitness
-    # than the winner of a smaller tournament.
-    # This could be very useful.
-    # Maybe I should return to rank.
-    # Ooh that's very cool: given the current population fitness mean and variance, can predict
-    # the average population fitness and iteratively to predict the convergence rate of the GA.
-    # http://wpmedia.wolfram.com/uploads/sites/13/2018/02/09-3-2.pdf
-
     def select(self):
 
         competitors = np.random.choice(self.population_size, self.tournament_size, replace=False)
@@ -90,11 +64,51 @@ class GeneticAlgorithm:
 
     def pmx(self, parents):
 
+        children = np.empty((2, self.length), dtype=int)
         points = [np.random.randint(0, self.length) for x in range(2)]
         low, high = min(points), max(points)
 
-        child = np.full(parents[0].shape, -1, dtype=int)
+        for j in range(2):
 
+            mother, father = parents[j % 2], parents[(j + 1) % 2]
+
+            child = np.full(mother.shape, -1, dtype=int)
+            child[low:high] = mother[low:high]
+
+            for i in range(low, high):
+
+                val = father[i]
+
+                if val not in child:
+
+                    def internal():
+
+                        k, temp = i, val
+
+                        while True:
+
+                            i_mother = np.where(father == mother[k])[0][0]
+
+                            if i_mother < low or i_mother >= high:
+
+                                return i_mother
+
+                            else:
+
+                                k, temp = i_mother, mother[k]
+
+                    index = internal()
+                    child[index] = val
+
+            for (i, val) in enumerate(child):
+
+                if val == -1:
+
+                    child[i] = father[i]
+
+            children[j] = child
+
+        return children
 
     def ox1(self, parents):
 
@@ -102,11 +116,11 @@ class GeneticAlgorithm:
         low, high = min(points), max(points)
         children = np.empty((2, self.length), dtype=int)
 
-        for j, parent in enumerate(parents):
+        for j in range(2):
 
-            other_parent = (parents[0] if j == 1 else parents[1])
-            middle = parent[low:high]
-            remaining = np.setdiff1d(other_parent, middle, assume_unique=True)
+            mother, father = parents[j % 2], parents[(j + 1) % 2]
+            middle = mother[low:high]
+            remaining = np.setdiff1d(father, middle, assume_unique=True)
 
             end = remaining[:self.length - high]
             start = remaining[self.length - high:]
@@ -121,7 +135,7 @@ class GeneticAlgorithm:
 
         for i in range(0, self.population_size, 2):
 
-            parents = [self.select(), self.select()]
+            parents = np.array([self.select(), self.select()])
 
             if self.crossover_probability >= np.random.rand():
 
@@ -129,7 +143,7 @@ class GeneticAlgorithm:
 
             else:
 
-                children[i], children[i + 1] = parents[0], parents[1]
+                children[i:i+2] = parents
 
         self.population = children
 
@@ -152,10 +166,16 @@ class GeneticAlgorithm:
                 self.best_cost = cost
                 self.best_generation = i
 
-                print("New best (gen = {}, pressure = {:.4f}):".format(i, self.get_selection_pressure()), self.best_cost)
+                print("New best (gen = {}):".format(i), self.best_cost)
+
+        if self.best_generation == 0:
+
+            self.best_generation = self.num_generations
 
         return self.best_route + 1, self.best_cost
 
+# I'll just do one file as well, for clarity. Then write them all?
+# How am I going to display this data? It's not that easy.
 
 # https://pdfs.semanticscholar.org/39f0/b09c38f60537ee28eb836a51466d0cd1a787.pdf
 # https://en.wikipedia.org/wiki/Genetic_algorithm
