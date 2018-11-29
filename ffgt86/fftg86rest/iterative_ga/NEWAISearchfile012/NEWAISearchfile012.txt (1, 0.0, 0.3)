@@ -1,0 +1,8 @@
+NAME = AISearchfile012,
+TOURSIZE = 12,
+LENGTH = 87,
+3,2,4,7,6,9,1,10,12,11,8,5,
+k: 1,
+P_c: 0.0,
+P_m: 0.3,
+GENERATION: 820,
