@@ -4,7 +4,7 @@ import time
 
 class SimulatedAnnealing:
 
-    def __init__(self, distance_matrix, length, min_temp=1, alpha=1, runtime=60):
+    def __init__(self, distance_matrix, length, alpha=0.91, min_temp=5, runtime=60):
 
         self.distance_matrix = distance_matrix
         self.length = length
@@ -14,6 +14,7 @@ class SimulatedAnnealing:
         self.r = 0
         self.tabu = []
         self.start_time = time.time()
+        self.best_route_time = 0
 
         route = np.full(length, -1, dtype=int)
         route[0] = np.random.choice(length)
@@ -100,7 +101,9 @@ class SimulatedAnnealing:
                 if self.get_cost(self.route) < self.get_cost(self.best_route):
 
                     self.best_route = self.route
+                    self.best_route_time = time.time() - self.start_time
 
-                    print("New best (temp = {:.5f}):".format(self.temp), self.get_cost(self.best_route))
+                    print("New best (temp = {:.5f}, time = {:.2f}): {}".format(self.temp, time.time() - self.start_time,
+                                                                               self.get_cost(self.best_route)))
 
         return self.best_route + 1, self.get_cost(self.best_route)

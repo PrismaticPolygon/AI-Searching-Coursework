@@ -4,7 +4,7 @@ import numpy as np
 class GeneticAlgorithm:
 
     def __init__(self, distance_matrix, length, mutation_probability=0.35,
-                 crossover_probability=0.55, tournament_size=6, num_generations=1000, population_size=100):
+                 crossover_probability=0.55, tournament_size=6, num_generations=1000, population_size=200):
 
         self.distance_matrix = distance_matrix
         self.length = length
@@ -156,10 +156,6 @@ class GeneticAlgorithm:
 
             best, cost = self.get_best()
 
-            # But that's not what we're doing, is it?
-            # That's per-locus: every bit has that probability. Cumulatively, does that guarantee mutation?
-            # Selection pressure has definitely changed... weird.
-
             if cost < self.best_cost:
 
                 self.best_route = best
@@ -173,9 +169,3 @@ class GeneticAlgorithm:
             self.best_generation = self.num_generations
 
         return self.best_route + 1, self.best_cost
-
-# I'll just do one file as well, for clarity. Then write them all?
-# How am I going to display this data? It's not that easy.
-
-# https://pdfs.semanticscholar.org/39f0/b09c38f60537ee28eb836a51466d0cd1a787.pdf
-# https://en.wikipedia.org/wiki/Genetic_algorithm
