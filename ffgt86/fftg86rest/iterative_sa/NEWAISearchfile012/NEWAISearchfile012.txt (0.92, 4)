@@ -1,0 +1,7 @@
+NAME = AISearchfile012,
+TOURSIZE = 12,
+LENGTH = 56,
+5,8,11,10,12,1,6,4,9,7,2,3,
+alpha: 0.92,
+min_temp: 4,
+best_time: 0,

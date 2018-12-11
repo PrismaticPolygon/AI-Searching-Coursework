@@ -1,0 +1,7 @@
+NAME = AISearchfile017,
+TOURSIZE = 17,
+LENGTH = 1444,
+9,3,11,5,8,1,12,13,15,4,7,16,6,14,17,10,2,
+alpha: 0.84,
+min_temp: 2,
+best_time: 0.033846139907836914,
