@@ -1,4 +1,4 @@
-NAME = NEWAISearchfile012,
+NAME = AISearchfile012,
 SIZE = 12,
 13,34,7,35,4,9,31,10,10,14,4,
 7,8,11,17,4,12,8,35,21,14,

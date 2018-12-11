@@ -1,8 +1,0 @@
-NAME = AISearchfile017,
-TOURSIZE = 17,
-LENGTH = 2154,
-1,12,4,13,17,15,11,5,8,14,7,6,16,2,9,3,10,
-k: 1,
-P_c: 0.2,
-P_m: 0.1,
-GENERATION: 401,
