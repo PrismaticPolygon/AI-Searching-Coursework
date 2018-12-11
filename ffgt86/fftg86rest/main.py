@@ -7,11 +7,9 @@ from ffgt86.fftg86rest.genetic_algorithm import GeneticAlgorithm
 
 def get_files():
 
-    for file in (os.listdir("../../cityfiles")):
+    for filename in reversed(os.listdir("../../cityfiles")):
 
-        if file != "AISearchtestcase.txt":
-
-            yield file, load_search_file(file)
+            yield load_search_file(filename)
 
 
 def load_search_file(filename):
@@ -42,28 +40,29 @@ def load_search_file(filename):
 
             i += 1
 
-    return matrix, matrix.shape[0]
+    return filename, matrix, matrix.shape[0]
 
 
-def load_tour_file(filename, algorithm="A"):
+def load_tour_file(filename, algorithm):
 
     with open("../Tourfile" + algorithm + "/tour" + filename, 'r') as file:
 
-        length, tour = 0, []
+        length = 0
+        tour = []
 
         for i, line in enumerate(file):
 
             text = line.replace("\n", '')
 
-            if i == 1:
+            if i == 2:
 
-                length = int(text[11:-1])
+                length = int(text[9:-1])
 
             if i == 3:
 
                 tour = [int(x) - 1 for x in text.split(",")]
 
-        return length, tour
+        return filename, length, tour
 
 
 def write_file(filename, algorithm, tour, length):
@@ -89,30 +88,82 @@ def write_file(filename, algorithm, tour, length):
 
     try:
 
-        with open(tour_filename, "r") as f:
+        filename, old_length, tour = load_tour_file(filename, algorithm)
 
-            old_length = int(f.readlines()[2][9:-2])
+        if old_length > length:
 
-            if old_length > length:
-
-                write()
+            write()
 
     except IOError:
 
         write()
 
 
-def load_iterative_files():
+def load_iterative_files_sa():
 
-    for file in (os.listdir("iterative_ga")):
+    for file in (os.listdir("iterative_sa/")):
+
+        print("\n" + file + "\n")
+
+        tours = {}
+
+        for iteration in os.listdir("iterative_sa/" + file):
+
+            with open("iterative_sa/" + file + "/" + iteration, "r") as f:
+
+                lines = f.readlines()
+
+                length = int(lines[2][9:-2])
+                alpha = float(lines[4][7:-2])
+                min_temp = float(lines[5][10:-2])
+                best_time = float(lines[6][11:-2])
+
+                if length not in tours:
+
+                    tours[length] = [[alpha, min_temp, best_time]]
+
+                else:
+
+                    tours[length].append([alpha, min_temp, best_time])
+
+        best_length = min(tours)
+        best_tours = []
+
+        for key, value in tours.items():
+
+            if key <= int(1.02 * best_length):
+
+                best_tours += value
+
+        mean_alpha = sum([x[0] for x in best_tours]) / len(best_tours)
+        mean_min_temp = sum([x[1] for x in best_tours]) / len(best_tours)
+        mean_best_time = sum([x[2] for x in best_tours]) / len(best_tours)
+
+        print("Best tours: ", best_tours)
+        print("Mean alpha: ", mean_alpha)
+        print("Mean min temp: ", mean_min_temp)
+        print("Mean best time: ", mean_best_time)
+
+        best_ever = min(tours[best_length], key=lambda x: x[2])
+
+        print(str(best_length) + ": ", best_ever)
+
+
+def load_iterative_files_ga():
+
+    for file in (os.listdir("iterative_ga/new/")):
+
+        if file == "new":
+
+            continue
 
         print("\n" + file + "\n") # Cause the rest are in use, I'm guessing. I wonder if I'll get an I/O exception trying to copy them
 
         tours = {}
 
-        for iteration in os.listdir("iterative_ga/" + file):
+        for iteration in os.listdir("iterative_ga/new/" + file):
 
-            with open("iterative_ga/" + file + "/" + iteration, "r") as f:
+            with open("iterative_ga/new/" + file + "/" + iteration, "r") as f:
 
                 lines = f.readlines()
 
@@ -135,7 +186,7 @@ def load_iterative_files():
 
         for key, value in tours.items():
 
-            if key <= int(1.05 * best_length):
+            if key <= int(1.00 * best_length):
 
                 best_tours += value
 
@@ -144,22 +195,20 @@ def load_iterative_files():
         mean_pm = sum([x[2] for x in best_tours]) / len(best_tours)
         mean_g = sum([x[3] for x in best_tours]) / len(best_tours)
 
-        # I'd need to do some statistically analysis or something.
-
         print("Best tours: ", best_tours)
         print("Mean tournament size: ", mean_k)
         print("Mean crossover probability: ", mean_pc)
         print("Mean mutation probability: ", mean_pm)
         print("Mean generation: ", mean_g)
 
-        best_ever = min(best_tours, key=lambda x: x[3])
+        best_ever = min(tours[best_length], key=lambda x: x[3])
 
         print(str(min(tours)) + ": ", best_ever)
 
 
 def write_iterative_file(filename, ga, tour, length):
 
-    directory = "iterative_ga/" + filename[:-4] + "/"
+    directory = "iterative_ga/new/" + filename[:-4] + "/"
 
     if not os.path.isdir(directory):
 
@@ -185,6 +234,33 @@ def write_iterative_file(filename, ga, tour, length):
             f.close()
 
 
+def write_iterative_file_sa(filename, sa, tour, length):
+
+    directory = "iterative_sa/" + filename[:-4] + "/"
+
+    tour_filename = directory + filename + " ({}, {})".format(sa.alpha, sa.min_temp)
+
+    if not os.path.isdir(directory):
+
+        os.makedirs(directory)
+
+    with open(tour_filename, "w") as f:
+
+        try:
+
+            f.write("NAME = " + filename[3:-4] + ",\n")
+            f.write("TOURSIZE = " + str(tour.size) + ",\n")
+            f.write("LENGTH = " + str(length) + ",\n")
+            f.write(",".join(map(str, tour)) + ",\n")
+            f.write("alpha: " + str(sa.alpha) + ",\n")
+            f.write("min_temp: " + str(sa.min_temp) + ",\n")
+            f.write("best_time: " + str(sa.best_route_time) + ",\n")
+
+        finally:
+
+            f.close()
+
+
 def run_ga_iteratively(filename, distance_matrix, length):
 
     for tournament_size in range(1, 10):
@@ -200,9 +276,22 @@ def run_ga_iteratively(filename, distance_matrix, length):
                 write_iterative_file(filename, ga, ga_tour, ga_cost)
 
 
-print("\nRunning algorithms...\n")
+def run_sa_iteratively(filename, distance_matrix, length):
 
-for filename, (distance_matrix, length) in get_files():
+    for alpha in [(1 - x / 100) for x in range(0, 20, 2)]:
+
+        for min_temp in [x for x in range(1, 10)]:
+
+            print("\nSimulated annealing ({}, {})\n".format(alpha, min_temp))
+
+            sa = SimulatedAnnealing(distance_matrix, length, alpha, min_temp)
+            sa_tour, sa_cost = sa.anneal()
+            write_iterative_file_sa(filename, sa, sa_tour, sa_cost)
+
+
+print("\nRunning algorithms...")
+
+for filename, distance_matrix, length in get_files():
 
     print(filename)
 
